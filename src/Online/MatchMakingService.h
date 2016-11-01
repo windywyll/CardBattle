@@ -46,9 +46,8 @@ namespace Stormancer
 	{
 	public:
 		std::string gameId;
-		Player player1;
-		Player player2;
-		std::string hostId;
+		std::vector<Player> team1;
+		std::vector<Player> team2;
 		std::vector<std::string> optionalParameters;
 	};
 

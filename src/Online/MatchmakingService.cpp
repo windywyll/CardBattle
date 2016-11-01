@@ -56,9 +56,9 @@ namespace Stormancer
 
 				mmres2.gameId = mmres.gameId;
 				mmres2.optionalParameters = mmres.optionalParameters;
-				mmres2.player1 = mmres.player1;
-				mmres2.player2 = mmres.player2;
-				mmres2.hostId = mmres.hostId;
+				mmres2.team1 = mmres.team1;
+				mmres2.team1 = mmres.team2;
+			
 
 				_onMatchFound(mmres2);
 			}

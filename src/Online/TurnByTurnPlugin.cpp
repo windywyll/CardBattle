@@ -26,3 +26,35 @@ Stormancer::TurnByTurnService::TurnByTurnService(std::shared_ptr<Scene> scene)
 {
 	_scene = scene;
 }
+
+void Stormancer::TurnByTurnService::registerUpdateGameCallback(std::function<int(UpdateDto)> callback)
+{
+
+	_scene->dependencyResolver()->resolve<IRpcService>()->addProcedure("transaction.execute", [callback](RpcRequestContext_ptr ctx)
+	{
+		UpdateDto input;
+		UpdateResponseDto parameter;
+		try
+		{
+			int value = callback(input);
+			parameter = UpdateResponseDto{ true, "", value };
+		}
+		catch (std::exception& ex)
+		{
+			parameter = UpdateResponseDto{ false, ex.what(),0 };
+		}
+		ctx->sendValue([parameter](bytestream* stream)
+		{
+			msgpack::pack(stream, parameter);
+		}, PacketPriority::MEDIUM_PRIORITY);
+		return pplx::task_from_result();
+	}, true);
+}
+
+
+pplx::task<void> Stormancer::TurnByTurnService::submitTransaction(std::string playerId, std::string cmd, web::json::value args)
+{
+	auto json = *args.serialize();
+	TransactionCommandDto dto{ playerId,cmd,std::string(json.begin(),json.end()) };
+	return _scene->dependencyResolver()->resolve<IRpcService>()->rpcVoid("transaction.submit", dto);
+}
