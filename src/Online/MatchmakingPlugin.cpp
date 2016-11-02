@@ -5,9 +5,9 @@
 #include "BugReportService.h"
 namespace Stormancer
 {
-	void MatchmakingPlugin::sceneCreated(Stormancer::ScenePtr scenePtr)
+	void MatchmakingPlugin::sceneCreated(Stormancer::Scene* scene)
 	{
-		auto scene = scenePtr.lock();
+		
 		if (scene)
 		{
 			auto name = scene->getHostMetadata("stormancer.plugins.matchmaking");

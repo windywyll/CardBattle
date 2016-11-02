@@ -90,7 +90,7 @@ namespace Stormancer
 	class MatchmakingService
 	{
 	public:
-		MatchmakingService(Stormancer::ScenePtr scene);
+		MatchmakingService(Stormancer::Scene* scene);
 		~MatchmakingService();
 
 		MatchmakingService(const MatchmakingService& other) = delete;
@@ -110,7 +110,7 @@ namespace Stormancer
 		void cancel();
 
 	private:
-		Stormancer::ScenePtr _scene;
+		Stormancer::Scene* _scene;
 		std::shared_ptr<Stormancer::IRpcService> _rpcService = nullptr;
 		bool _isMatching = false;
 		bool _hasSubscription = false;

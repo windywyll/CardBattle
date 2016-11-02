@@ -149,9 +149,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\..\src\Logger.h" />
     <ClInclude Include="..\..\src\Online\AuthenticationPlugin.h" />
     <ClInclude Include="..\..\src\Online\AuthenticationService.h" />
@@ -190,14 +187,17 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\StormancerClient.Native.140.2.0.0-pre\build\native\StormancerClient.Native.140.targets" Condition="Exists('..\packages\StormancerClient.Native.140.2.0.0-pre\build\native\StormancerClient.Native.140.targets')" />
+    <Import Project="..\packages\StormancerClient.Native.140.2.0.1-pre\build\native\StormancerClient.Native.140.targets" Condition="Exists('..\packages\StormancerClient.Native.140.2.0.1-pre\build\native\StormancerClient.Native.140.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\StormancerClient.Native.140.2.0.0-pre\build\native\StormancerClient.Native.140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\StormancerClient.Native.140.2.0.0-pre\build\native\StormancerClient.Native.140.targets'))" />
+    <Error Condition="!Exists('..\packages\StormancerClient.Native.140.2.0.1-pre\build\native\StormancerClient.Native.140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\StormancerClient.Native.140.2.0.1-pre\build\native\StormancerClient.Native.140.targets'))" />
   </Target>
 </Project>

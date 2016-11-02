@@ -22,11 +22,11 @@ namespace Stormancer
 		return ss.str();
 	}
 
-	MatchmakingService::MatchmakingService(Stormancer::ScenePtr scene)
+	MatchmakingService::MatchmakingService(Stormancer::Scene* scene)
 		: _scene(scene),
-		_rpcService(scene.lock()->dependencyResolver()->resolve<Stormancer::IRpcService>())
+		_rpcService(scene->dependencyResolver()->resolve<Stormancer::IRpcService>())
 	{
-		auto sceneLock = _scene.lock();
+		auto sceneLock = _scene;
 		sceneLock->addRoute("match.update", [this](Stormancer::Packetisp_ptr packet) {
 			byte matchStateByte;
 			packet->stream->read((char*)&matchStateByte, 1);
@@ -36,7 +36,10 @@ namespace Stormancer
 
 			auto ms = std::to_string(matchState);
 
-			_onMatchUpdate(_matchState);
+			if (_onMatchUpdate)
+			{
+				_onMatchUpdate(_matchState);
+			}
 
 			if (_matchState == MatchState::Success)
 			{
@@ -87,7 +90,7 @@ namespace Stormancer
 			ReadyVerificationRequest readyUpdate2;
 			readyUpdate2.matchId = readyUpdate.matchId;
 			readyUpdate2.timeout = readyUpdate.timeout;
-			readyUpdate2.membersCountTotal = readyUpdate2.members.size();
+			readyUpdate2.membersCountTotal = (int)readyUpdate2.members.size();
 			readyUpdate2.membersCountReady = 0;
 			for (auto it : readyUpdate2.members)
 			{
@@ -187,7 +190,7 @@ namespace Stormancer
 
 	void MatchmakingService::resolve(bool acceptMatch)
 	{
-		_scene.lock()->sendPacket("match.ready.resolve", [acceptMatch](Stormancer::bytestream* stream) {
+		_scene->sendPacket("match.ready.resolve", [acceptMatch](Stormancer::bytestream* stream) {
 			*stream << acceptMatch;
 		}, PacketPriority::MEDIUM_PRIORITY, PacketReliability::RELIABLE);
 	}
@@ -204,7 +207,7 @@ namespace Stormancer
 			}
 			else
 			{
-				_scene.lock()->sendPacket("match.cancel", [](Stormancer::bytestream* stream) {}, PacketPriority::MEDIUM_PRIORITY, PacketReliability::RELIABLE);
+				_scene->sendPacket("match.cancel", [](Stormancer::bytestream* stream) {}, PacketPriority::MEDIUM_PRIORITY, PacketReliability::RELIABLE);
 			}
 		}
 	}

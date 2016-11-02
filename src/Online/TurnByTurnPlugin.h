@@ -37,19 +37,21 @@ namespace Stormancer
 	class TurnByTurnService
 	{
 	public:
-		TurnByTurnService(std::shared_ptr<Scene> scene);
-		void setUpdateGameCallback(std::function<int(UpdateDto)> callback);
-		void setDesyncErrorCallback(std::function<void(std::string)> callback);
+		TurnByTurnService(Scene* scene);
+		void onUpdateGameCallback(std::function<int(UpdateDto)> callback);
+		void onDesyncErrorCallback(std::function<void(std::string)> callback);
 		pplx::task<void> submitTransaction(std::string playerId, std::string cmd, web::json::value args);
 
 	private:
-		std::shared_ptr<Scene> _scene;
+		Scene* _scene;
+		std::function<void(std::string)> _onDesync;
+		std::function<int(UpdateDto)> _onUpdateGame;
 	};
 
 	class TurnByTurnPlugin : public IPlugin
 	{
 	public:
-		void sceneCreated(Stormancer::ScenePtr scene);
+		void sceneCreated(Stormancer::Scene* scene) override;
 		void destroy();
 	};
 }

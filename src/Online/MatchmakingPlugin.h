@@ -7,7 +7,7 @@ namespace Stormancer
 	class MatchmakingPlugin : public Stormancer::IPlugin
 	{
 	public:
-		void sceneCreated(Stormancer::ScenePtr scene);
+		void sceneCreated(Stormancer::Scene* scene) override;
 		void destroy();
 	};
 };

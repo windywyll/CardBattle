@@ -79,7 +79,7 @@ namespace Stormancer
 	class GameSessionService
 	{
 	public:
-		GameSessionService(Stormancer::ScenePtr scene);
+		GameSessionService(Stormancer::Scene* scene);
 
 		pplx::task<std::shared_ptr<Result<GameServerInformations>>> waitServerReady(pplx::cancellation_token);
 
@@ -102,7 +102,7 @@ namespace Stormancer
 
 	private:
 		Action<SessionPlayer> _onConnectedPlayersChanged;
-		ScenePtr _scene;
+		Scene* _scene;
 		std::vector<SessionPlayer> _users;
 		pplx::task_completion_event<GameServerInformations> _waitServerTce;
 	};

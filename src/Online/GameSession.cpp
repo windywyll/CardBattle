@@ -4,10 +4,10 @@
 
 namespace Stormancer
 {
-	GameSessionService::GameSessionService(ScenePtr scene)
+	GameSessionService::GameSessionService(Scene* scene)
 	{
 		_scene = scene;
-		auto s = scene.lock();
+		auto s = scene;
 		s->addRoute("server.started", [this](Packetisp_ptr packet) {
 			auto serverInfos = packet->readObject<GameServerInformations>();
 			this->_waitServerTce.set(serverInfos);
@@ -71,12 +71,12 @@ namespace Stormancer
 
 	pplx::task<void> GameSessionService::connect()
 	{
-		return _scene.lock()->connect();
+		return _scene->connect();
 	}
 
 	void GameSessionService::ready()
 	{
-		_scene.lock()->sendPacket("player.ready", [](Stormancer::bytestream* stream) {});
+		_scene->sendPacket("player.ready", [](Stormancer::bytestream* stream) {});
 	}
 
 }

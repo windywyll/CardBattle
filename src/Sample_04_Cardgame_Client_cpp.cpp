@@ -20,7 +20,7 @@ int main()
 	auto scene = auth->steamLogin("test1").get();
 
 	auto matchmakingScene = auth->getPrivateScene("matchmaking-fast").get();
-
+	matchmakingScene.lock()->connect().get();
 	auto matchmaking = matchmakingScene.lock()->dependencyResolver()->resolve<Stormancer::MatchmakingService>();
 
 	auto tce = pplx::task_completion_event<Stormancer::MatchmakingResponse>{};

@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "TurnByTurnPlugin.h"
 
-void Stormancer::TurnByTurnPlugin::sceneCreated(Stormancer::ScenePtr scenePtr)
+void Stormancer::TurnByTurnPlugin::sceneCreated(Stormancer::Scene* scene)
 {
-	auto scene = scenePtr.lock();
+	
 	if (scene)
 	{
 		auto name = scene->getHostMetadata("stormancer.turnByTurn");
@@ -13,6 +13,8 @@ void Stormancer::TurnByTurnPlugin::sceneCreated(Stormancer::ScenePtr scenePtr)
 			auto service = std::make_shared<TurnByTurnService>(scene);
 			scene->dependencyResolver()->registerDependency<TurnByTurnService>(service);
 		}
+
+		
 	}
 
 }
@@ -22,14 +24,10 @@ void Stormancer::TurnByTurnPlugin::destroy()
 	delete this;
 }
 
-Stormancer::TurnByTurnService::TurnByTurnService(std::shared_ptr<Scene> scene)
+Stormancer::TurnByTurnService::TurnByTurnService(Scene* scene)
 {
 	_scene = scene;
-}
-
-void Stormancer::TurnByTurnService::setDesyncErrorCallback(std::function<void(std::string)> callback)
-{
-	_scene->addRoute("", [callback](Stormancer::Packetisp_ptr packet)
+	_scene->addRoute("tbt.desync", [this](Stormancer::Packetisp_ptr packet)
 	{
 		std::string input;
 		std::string buffer;
@@ -37,27 +35,25 @@ void Stormancer::TurnByTurnService::setDesyncErrorCallback(std::function<void(st
 		msgpack::unpacked unp;
 		msgpack::unpack(unp, buffer.data(), buffer.size());
 		unp.get().convert(&input);
-
-		callback(input);
+		if (_onDesync)
+		{
+			_onDesync(input);
+		}
 	});
-}
 
-void Stormancer::TurnByTurnService::setUpdateGameCallback(std::function<int(UpdateDto)> callback)
-{
-
-	_scene->dependencyResolver()->resolve<IRpcService>()->addProcedure("transaction.execute", [callback](RpcRequestContext_ptr ctx)
+	_scene->dependencyResolver()->resolve<IRpcService>()->addProcedure("transaction.execute", [this](RpcRequestContext_ptr ctx)
 	{
 		UpdateDto input;
 		std::string buffer;
 		*ctx->inputStream() >> buffer;
 		msgpack::unpacked unp;
 		msgpack::unpack(unp, buffer.data(), buffer.size());
-		
+
 		unp.get().convert(&input);
 		UpdateResponseDto parameter;
 		try
 		{
-			int value = callback(input);
+			int value = _onUpdateGame(input);
 			parameter = UpdateResponseDto{ true, "", value };
 		}
 		catch (std::exception& ex)
@@ -70,6 +66,17 @@ void Stormancer::TurnByTurnService::setUpdateGameCallback(std::function<int(Upda
 		}, PacketPriority::MEDIUM_PRIORITY);
 		return pplx::task_from_result();
 	}, true);
+}
+
+void Stormancer::TurnByTurnService::onDesyncErrorCallback(std::function<void(std::string)> callback)
+{
+	_onDesync = callback;
+}
+
+void Stormancer::TurnByTurnService::onUpdateGameCallback(std::function<int(UpdateDto)> callback)
+{
+	_onUpdateGame = callback;
+	
 }
 
 

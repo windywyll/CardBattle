@@ -4,10 +4,10 @@
 namespace Stormancer
 {
 
-	BugReportService::BugReportService(Stormancer::ScenePtr scene)
+	BugReportService::BugReportService(Stormancer::Scene* scene)
 	{
 		this->_scene = scene;
-		this->_rpc = scene.lock()->dependencyResolver()->resolve<IRpcService>();
+		this->_rpc = scene->dependencyResolver()->resolve<IRpcService>();
 	}
 
 	pplx::task<void> BugReportService::ReportBug(std::string category, std::string comments, std::vector<AttachedFileDescriptor> files)
