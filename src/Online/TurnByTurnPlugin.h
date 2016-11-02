@@ -38,8 +38,8 @@ namespace Stormancer
 	{
 	public:
 		TurnByTurnService(std::shared_ptr<Scene> scene);
-		void registerUpdateGameCallback(std::function<int(UpdateDto)> callback);
-
+		void setUpdateGameCallback(std::function<int(UpdateDto)> callback);
+		void setDesyncErrorCallback(std::function<void(std::string)> callback);
 		pplx::task<void> submitTransaction(std::string playerId, std::string cmd, web::json::value args);
 
 	private:

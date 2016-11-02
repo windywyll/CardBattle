@@ -27,12 +27,33 @@ Stormancer::TurnByTurnService::TurnByTurnService(std::shared_ptr<Scene> scene)
 	_scene = scene;
 }
 
-void Stormancer::TurnByTurnService::registerUpdateGameCallback(std::function<int(UpdateDto)> callback)
+void Stormancer::TurnByTurnService::setDesyncErrorCallback(std::function<void(std::string)> callback)
+{
+	_scene->addRoute("", [callback](Stormancer::Packetisp_ptr packet)
+	{
+		std::string input;
+		std::string buffer;
+		*packet->stream >> buffer;
+		msgpack::unpacked unp;
+		msgpack::unpack(unp, buffer.data(), buffer.size());
+		unp.get().convert(&input);
+
+		callback(input);
+	});
+}
+
+void Stormancer::TurnByTurnService::setUpdateGameCallback(std::function<int(UpdateDto)> callback)
 {
 
 	_scene->dependencyResolver()->resolve<IRpcService>()->addProcedure("transaction.execute", [callback](RpcRequestContext_ptr ctx)
 	{
 		UpdateDto input;
+		std::string buffer;
+		*ctx->inputStream() >> buffer;
+		msgpack::unpacked unp;
+		msgpack::unpack(unp, buffer.data(), buffer.size());
+		
+		unp.get().convert(&input);
 		UpdateResponseDto parameter;
 		try
 		{

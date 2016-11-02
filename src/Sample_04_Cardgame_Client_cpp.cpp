@@ -19,7 +19,21 @@ int main()
 
 	auto scene = auth->steamLogin("test1").get();
 
-	auth->getPrivateScene("matchmaking-fast");
+	auto matchmakingScene = auth->getPrivateScene("matchmaking-fast").get();
+
+	auto matchmaking = matchmakingScene.lock()->dependencyResolver()->resolve<Stormancer::MatchmakingService>();
+
+	auto tce = pplx::task_completion_event<Stormancer::MatchmakingResponse>{};
+	matchmaking->onMatchFound([tce](Stormancer::MatchmakingResponse response)
+	{
+
+		tce.set(response);
+
+	});
+	matchmaking->findMatch("matchmaking-sample");
+
+	auto mmResponse = pplx::create_task(tce).get();
+
 
 	int n;
 	std::cin >> n;
