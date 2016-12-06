@@ -1,6 +1,7 @@
 #pragma once
 
-
+#include "headers.h"
+#include <stormancer.h>
 
 namespace Stormancer
 {
@@ -33,34 +34,23 @@ namespace Stormancer
 	struct Player
 	{
 	public:
-
+		
 		std::string playerId;
 		std::string pseudo;
-		std::string platformId;
-		std::string platform;
+		int64 rank;
+		std::string division;
 
-		MSGPACK_DEFINE(playerId, pseudo, platformId, platform);
-	};
-
-	struct MatchmakingRequest
-	{
-	public:
-		std::string gameMode;
-		int ranking;
-
-		MSGPACK_DEFINE(gameMode, ranking);
+		MSGPACK_DEFINE(playerId, pseudo, rank, division);
 	};
 
 	struct MatchmakingResponse
 	{
 	public:
 		std::string gameId;
-		std::vector<Player> team1;
-		std::vector<Player> team2;
+		Player player1;
+		Player player2;
+		std::string hostId;
 		std::vector<std::string> optionalParameters;
-
-		MSGPACK_DEFINE(gameId, team1, team2, optionalParameters);
-
 	};
 
 	struct ReadyVerificationRequest
@@ -80,13 +70,13 @@ namespace Stormancer
 		{
 		public:
 			std::string gameId;
-			std::string hostPlatformId;
-			std::vector<Player> team1;
-			std::vector<Player> team2;
+			Player player1;
+			Player player2;
+			std::string hostId;
 			std::vector<std::string> optionalParameters;
+			
 
-
-			MSGPACK_DEFINE(gameId, hostPlatformId, team1, team2, optionalParameters);
+			MSGPACK_DEFINE(gameId, player1, player2, hostId, optionalParameters);
 		};
 
 		struct ReadyVerificationRequest
@@ -103,7 +93,7 @@ namespace Stormancer
 	class MatchmakingService
 	{
 	public:
-		MatchmakingService(Stormancer::Scene* scene);
+		MatchmakingService(Stormancer::ScenePtr scene);
 		~MatchmakingService();
 
 		MatchmakingService(const MatchmakingService& other) = delete;
@@ -111,75 +101,26 @@ namespace Stormancer
 		MatchmakingService& operator=(const MatchmakingService&& other) = delete;
 
 		void onMatchUpdate(std::function<void(MatchState)> callback);
-		void onMatchParametersUpdate(std::function<void(MatchmakingRequest)> callback);
 		void onMatchReadyUpdate(std::function<void(ReadyVerificationRequest)> callback);
 		void onMatchFound(std::function<void(MatchmakingResponse)> callback);
 
 		MatchState matchState() const;
 
-		template<typename T>
-		pplx::task<std::shared_ptr<Stormancer::Result<>>> findMatch(std::string provider, T requestParams)
-		{
-			pplx::task_completion_event<std::shared_ptr<Stormancer::Result<>>> tce;
-
-			_isMatching = true;
-
-
-
-			auto observable = _rpcService->rpc("match.find", [provider, requestParams](Stormancer::bytestream* stream) {
-				msgpack::pack(stream, provider);
-				msgpack::pack(stream, requestParams);
-			}, PacketPriority::MEDIUM_PRIORITY);
-
-			auto onNext = [this, tce](Stormancer::Packetisp_ptr packet) {
-				_isMatching = false;
-				auto sub = _matchmakingSubscription.lock();
-				if (sub)
-				{
-					sub->unsubscribe();
-				}
-				std::shared_ptr<Stormancer::Result<>> res(new Stormancer::Result<>());
-				//auto res = new std::shared_ptr<Stormancer::Result<>*>();
-				res->set();
-				tce.set(res);
-			};
-
-			auto onError = [this, tce](const char* error) {
-				_isMatching = false;
-				auto sub = _matchmakingSubscription.lock();
-				if (sub)
-				{
-					sub->unsubscribe();
-				}
-
-				std::shared_ptr<Stormancer::Result<>> res(new Stormancer::Result<>());
-				//auto res = new std::shared_ptr<Stormancer::Result<>*>();
-				res->setError(1, error);
-				tce.set(res);
-			};
-
-			auto onComplete = []() {
-			};
-
-			_matchmakingSubscription = observable->subscribe(onNext, onError, onComplete);
-
-			return pplx::create_task(tce);
-		}
+		pplx::task<void> findMatch(std::string provider);
 
 		void resolve(bool acceptMatch);
 
 		void cancel();
 
 	private:
-		Stormancer::Scene* _scene = nullptr;
+		Stormancer::ScenePtr _scene;
 		std::shared_ptr<Stormancer::IRpcService> _rpcService = nullptr;
 		bool _isMatching = false;
-		std::weak_ptr<Stormancer::ISubscription> _matchmakingSubscription;
+		bool _hasSubscription = false;
+		rxcpp::subscription _matchmakingSubscription;
 		std::function<void(MatchState)> _onMatchUpdate;
-		std::function<void(MatchmakingRequest)> _onMatchParametersUpdate;
 		std::function<void(ReadyVerificationRequest)> _onMatchReadyUpdate;
 		std::function<void(MatchmakingResponse)> _onMatchFound;
 		MatchState _matchState = MatchState::Unknown;
-		MatchmakingRequest _matchmakingRequest;
 	};
 };

@@ -1,35 +1,32 @@
-#include "stdafx.h"
+#include "stormancer.h"
 #include "GameSession.h"
 
 
 namespace Stormancer
 {
-	GameSessionService::GameSessionService(Scene* scene)
+	GameSessionService::GameSessionService(ScenePtr scene)
 	{
 		_scene = scene;
-		scene->addRoute("server.started", [this](Packetisp_ptr packet) {
+		auto s = scene.lock();
+		s->addRoute("server.started", [this](Packetisp_ptr packet) {
 			auto serverInfos = packet->readObject<GameServerInformations>();
 			this->_waitServerTce.set(serverInfos);
 		});
-		scene->addRoute("player.joined", [this](Packetisp_ptr packet) {
-			auto userId = packet->readObject<std::string>();
+		s->addRoute("player.update", [this](Packetisp_ptr packet) {
+			auto update = packet->readObject<Stormancer::PlayerUpdate>();
+			SessionPlayer player(update.UserId, (PlayerStatus)update.Status);
+
 			auto end = this->_users.end();
-			auto it = std::find(this->_users.begin(), end, userId);
+			auto it = std::find_if(this->_users.begin(), end, [player](SessionPlayer p) { return p.PlayerId == player.PlayerId; });
 			if (it == end)
 			{
-				this->_users.push_back(userId);
-				this->_onConnectedPlayersChanged();
+				this->_users.push_back(player);
 			}
-		});
-		scene->addRoute("player.left", [this](Packetisp_ptr packet) {
-			auto userId = packet->readObject<std::string>();
-			auto end = this->_users.end();
-			auto it = std::find(this->_users.begin(), end, userId);
-			if (it != end)
+			else
 			{
-				this->_users.erase(it);
-				this->_onConnectedPlayersChanged();
+				*it = player;
 			}
+			this->_onConnectedPlayersChanged(player);
 		});
 
 	}
@@ -53,24 +50,33 @@ namespace Stormancer
 		});
 	}
 
-	std::vector<std::string> GameSessionService::getConnectedPlayers()
+	std::vector<SessionPlayer> GameSessionService::getConnectedPlayers()
 	{
 		return this->_users;
 	}
 
-	void GameSessionService::unsubscribeConnectedPlayersChanged(Action<>::TIterator handle)
+	void GameSessionService::unsubscribeConnectedPlayersChanged(Action<SessionPlayer>::TIterator handle)
 	{
 		this->_onConnectedPlayersChanged.erase(handle);
 	}
-	Action<>::TIterator GameSessionService::onConnectedPlayersChanged(std::function<void()> callback)
+	std::function<void()> Stormancer::GameSessionService::onConnectedPlayerChanged(std::function<void(SessionPlayer)> callback)
 	{
-		return this->_onConnectedPlayersChanged.push_back(callback);
+		auto iterator = this->_onConnectedPlayersChanged.push_back(callback);
+		return [iterator, this]() {
+			unsubscribeConnectedPlayersChanged(iterator);
+		};
 	}
 
-	pplx::task<std::shared_ptr<Result<void>>> GameSessionService::sendGameResults(GameResults results)
+
+
+	pplx::task<void> GameSessionService::connect()
 	{
-		auto rpc = _scene->dependencyResolver()->resolve<IRpcService>();
-		return rpc->rpcVoid("gamesession.postresults", results);
+		return _scene.lock()->connect();
+	}
+
+	void GameSessionService::ready()
+	{
+		_scene.lock()->sendPacket("player.ready", [](Stormancer::bytestream* stream) {});
 	}
 
 }

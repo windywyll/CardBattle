@@ -1,12 +1,12 @@
 #pragma once
-#include "..\stdafx.h"
-#include "MatchMakingService.h"
+#include "stormancer.h"
+
 namespace Stormancer
 {
 	class MatchmakingPlugin : public Stormancer::IPlugin
 	{
 	public:
-		void sceneCreated(Stormancer::Scene* scene);
+		void sceneCreated(Stormancer::ScenePtr scene);
 		void destroy();
 	};
 };

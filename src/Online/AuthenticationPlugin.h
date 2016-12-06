@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+#include "stormancer.h"
 #include "IAuthenticationService.h"
 
 namespace Stormancer

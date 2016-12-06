@@ -39,13 +39,13 @@ namespace Stormancer
 	class BugReportService
 	{
 	public:
-		BugReportService(Stormancer::Scene* scene);
+		BugReportService(Stormancer::ScenePtr scene);
 
 		//Reports a bug with optional attached files
-		pplx::task<std::shared_ptr<Result<void>>> ReportBug(std::string category, std::string comments, std::vector<AttachedFileDescriptor> files);
+		pplx::task<void> ReportBug(std::string category, std::string comments, std::vector<AttachedFileDescriptor> files);
 
 	private:
-		Stormancer::Scene* _scene;
+		Stormancer::ScenePtr _scene;
 		std::shared_ptr<Stormancer::IRpcService> _rpc;
 	};
 }

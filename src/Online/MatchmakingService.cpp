@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "stormancer.h"
 #include "MatchmakingService.h"
 //#include <ostringstream>
 
@@ -22,11 +22,12 @@ namespace Stormancer
 		return ss.str();
 	}
 
-	MatchmakingService::MatchmakingService(Stormancer::Scene* scene)
+	MatchmakingService::MatchmakingService(Stormancer::ScenePtr scene)
 		: _scene(scene),
-		_rpcService(scene->dependencyResolver()->resolve<Stormancer::IRpcService>())
+		_rpcService(scene.lock()->dependencyResolver()->resolve<Stormancer::IRpcService>())
 	{
-		_scene->addRoute("match.update", [this](Stormancer::Packetisp_ptr packet) {
+		auto sceneLock = _scene.lock();
+		sceneLock->addRoute("match.update", [this](Stormancer::Packetisp_ptr packet) {
 			byte matchStateByte;
 			packet->stream->read((char*)&matchStateByte, 1);
 			Stormancer::int32 matchState = matchStateByte;
@@ -55,14 +56,15 @@ namespace Stormancer
 
 				mmres2.gameId = mmres.gameId;
 				mmres2.optionalParameters = mmres.optionalParameters;
-				mmres2.team1 = mmres.team1;
-				mmres2.team2 = mmres.team2;
+				mmres2.player1 = mmres.player1;
+				mmres2.player2 = mmres.player2;
+				mmres2.hostId = mmres.hostId;
 
 				_onMatchFound(mmres2);
 			}
 		});
 
-		_scene->addRoute("match.parameters.update", [this](Stormancer::Packetisp_ptr packet) {
+		sceneLock->addRoute("match.parameters.update", [this](Stormancer::Packetisp_ptr packet) {
 			std::string buffer;
 			*packet->stream >> buffer;
 
@@ -71,14 +73,10 @@ namespace Stormancer
 			std::string provider;
 			result.get().convert(&provider);
 
-			msgpack::unpacked result3;
-			off += msgpack::unpack(result3, buffer.data() + off, buffer.size() - off);
-			result3.get().convert(&_matchmakingRequest);
-
-			_onMatchParametersUpdate(_matchmakingRequest);
+			//_onMatchParametersUpdate();
 		});
 
-		_scene->addRoute("match.ready.update", [this](Stormancer::Packetisp_ptr packet) {
+		sceneLock->addRoute("match.ready.update", [this](Stormancer::Packetisp_ptr packet) {
 			std::string buffer;
 			*packet->stream >> buffer;
 			msgpack::unpacked result;
@@ -89,7 +87,7 @@ namespace Stormancer
 			ReadyVerificationRequest readyUpdate2;
 			readyUpdate2.matchId = readyUpdate.matchId;
 			readyUpdate2.timeout = readyUpdate.timeout;
-			readyUpdate2.membersCountTotal = static_cast<Stormancer::int32>(readyUpdate2.members.size());
+			readyUpdate2.membersCountTotal = readyUpdate2.members.size();
 			readyUpdate2.membersCountReady = 0;
 			for (auto it : readyUpdate2.members)
 			{
@@ -108,22 +106,17 @@ namespace Stormancer
 	}
 
 	MatchmakingService::~MatchmakingService()
-	{
-		auto sub = _matchmakingSubscription.lock();
-		if (sub)
+	{		
+		if (_hasSubscription)
 		{
-			sub->unsubscribe();
+			_matchmakingSubscription.unsubscribe();
+			_hasSubscription = false;
 		}
 	}
 
 	void MatchmakingService::onMatchUpdate(std::function<void(MatchState)> callback)
 	{
 		_onMatchUpdate = callback;
-	}
-
-	void MatchmakingService::onMatchParametersUpdate(std::function<void(MatchmakingRequest)> callback)
-	{
-		_onMatchParametersUpdate = callback;
 	}
 
 	void MatchmakingService::onMatchReadyUpdate(std::function<void(ReadyVerificationRequest)> callback)
@@ -141,10 +134,60 @@ namespace Stormancer
 		return _matchState;
 	}
 
-	
+	pplx::task<void> MatchmakingService::findMatch(std::string provider)
+	{
+		pplx::task_completion_event<void> tce;
+
+		_isMatching = true;
+
+
+		rxcpp::observable<Packetisp_ptr> observable = _rpcService->rpc("match.find", [provider](Stormancer::bytestream* stream) {
+			msgpack::pack(stream, provider);
+		}, PacketPriority::MEDIUM_PRIORITY);
+
+		auto onNext = [this, tce](Stormancer::Packetisp_ptr packet) {
+			_isMatching = false;
+			if (_hasSubscription)
+			{
+				_matchmakingSubscription.unsubscribe();
+				_hasSubscription = false;
+			}
+			tce.set();
+		};
+
+		auto onError = [this, tce](std::exception_ptr eptr) {
+			_isMatching = false;
+			if (_hasSubscription)
+			{
+				_matchmakingSubscription.unsubscribe();
+				_hasSubscription = false;
+			}
+			try
+			{
+				if (eptr)
+				{
+					std::rethrow_exception(eptr);
+				}
+				else
+				{
+					throw std::runtime_error("Unknown error during mathmaking.");
+				}
+			}
+			catch(std::exception& ex)
+			{
+				tce.set_exception(ex);
+			}
+		};
+
+		_matchmakingSubscription = observable.subscribe(onNext, onError);
+		_hasSubscription = true;
+
+		return pplx::create_task(tce);
+	}
+
 	void MatchmakingService::resolve(bool acceptMatch)
 	{
-		_scene->sendPacket("match.ready.resolve", [acceptMatch](Stormancer::bytestream* stream) {
+		_scene.lock()->sendPacket("match.ready.resolve", [acceptMatch](Stormancer::bytestream* stream) {
 			*stream << acceptMatch;
 		}, PacketPriority::MEDIUM_PRIORITY, PacketReliability::RELIABLE);
 	}
@@ -154,14 +197,14 @@ namespace Stormancer
 		if (_isMatching)
 		{
 			_isMatching = false;
-			auto sub = _matchmakingSubscription.lock();
-			if (sub)
+			if (_hasSubscription)
 			{
-				sub->unsubscribe();
+				_matchmakingSubscription.unsubscribe();
+				_hasSubscription = false;
 			}
 			else
 			{
-				_scene->sendPacket("match.cancel", [](Stormancer::bytestream* stream) {}, PacketPriority::MEDIUM_PRIORITY, PacketReliability::RELIABLE);
+				_scene.lock()->sendPacket("match.cancel", [](Stormancer::bytestream* stream) {}, PacketPriority::MEDIUM_PRIORITY, PacketReliability::RELIABLE);
 			}
 		}
 	}

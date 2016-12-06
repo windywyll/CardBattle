@@ -1,25 +1,18 @@
-#include "stdafx.h"
+#include "stormancer.h"
 #include "AuthenticationService.h"
+#include "rx.hpp"
+
+
 namespace Stormancer
 {
-	LoginResult::LoginResult(Stormancer::bytestream* stream)
-	{
-		std::string buffer;
-		*stream >> buffer;
-		msgpack::unpacked result;
-		msgpack::unpack(&result, buffer.data(), buffer.size());
-		result.get().convert(this);
-
-		pplx::task_completion_event<void> tce;
-		auto a = pplx::create_task(tce);
-	}
 
 
 
 	AuthenticationService::AuthenticationService(Client* client)
 		: _client(client)
 	{
-		this->_client->onConnectionStateChanged([this](ConnectionState state) {
+		client->GetConnectionStateChangedObservable().subscribe([this](ConnectionState state)
+		{
 			switch (state)
 			{
 			case ConnectionState::Connecting:
@@ -34,306 +27,163 @@ namespace Stormancer
 	}
 
 	AuthenticationService::~AuthenticationService()
+	{}
+
+	std::string AuthenticationService::authenticationSceneName()
 	{
+		return _authenticationSceneName;
 	}
 
-	const char* AuthenticationService::authenticationSceneName()
-	{
-		return _authenticationSceneName.c_str();
-	}
-
-	void AuthenticationService::setAuthenticationSceneName(const char* name)
+	void AuthenticationService::setAuthenticationSceneName(std::string name)
 	{
 		_authenticationSceneName = name;
 	}
 
-	const char* AuthenticationService::createUserRoute()
+	std::string AuthenticationService::createUserRoute()
 	{
-		return _createUserRoute.c_str();
+		return _createUserRoute;
 	}
 
-	void AuthenticationService::setCreateUserRoute(const char* name)
+	void AuthenticationService::setCreateUserRoute(std::string name)
 	{
 		_createUserRoute = name;
 	}
 
-	const char* AuthenticationService::loginRoute()
+	std::string AuthenticationService::loginRoute()
 	{
-		return _loginRoute.c_str();
+		return _loginRoute;
 	}
 
-	void AuthenticationService::setLoginRoute(const char* name)
+	void AuthenticationService::setLoginRoute(std::string name)
 	{
 		_loginRoute = name;
 	}
 
-	pplx::task<std::shared_ptr<Result<Scene*>>> AuthenticationService::login(std::string email, std::string password)
+	pplx::task<ScenePtr> AuthenticationService::login(std::string email, std::string password)
 	{
-		stringMap authContext{ { "provider", "loginpassword" }, { "login", email },{"password",password } };
+		std::unordered_map<std::string, std::string> authContext{ { "provider", "loginpassword" }, { "login", email },{"password",password } };
 		return login(authContext);
 	}
 
-	pplx::task<std::shared_ptr<Result<Scene*>>> AuthenticationService::steamLogin(std::string steamTicket)
+	pplx::task<ScenePtr> AuthenticationService::steamLogin(std::string steamTicket)
 	{
-		stringMap authContext{ { "provider", "steam" }, { "ticket", steamTicket } };
+		std::unordered_map<std::string, std::string> authContext{ { "provider", "steam" }, { "ticket", steamTicket } };
 		return login(authContext);
 	}
-	pplx::task<Result<>*> AuthenticationService::createAccount(std::string login, std::string password, std::string email, std::string key, std::string pseudo)
+	pplx::task<void> AuthenticationService::createAccount(std::string login, std::string password, std::string email, std::string key, std::string pseudo)
 	{
-
 		CreateUserParameters rq;
 		rq.email = email;
 		rq.login = login;
 		rq.password = password;
 		rq.userData = "{\"key\":\"" + key + "\",\"pseudo\":\"" + pseudo + "\"}";
-		pplx::task_completion_event<Result<>*> tce;
-		auto result = new Result<>();
-		try
+		return getAuthenticationScene()
+			.then([this,rq](ScenePtr scenePtr)
 		{
-			getAuthenticationScene().then([rq, tce, this, result](pplx::task<Scene*> t) {
-				auto scene = t.get();
-				auto rpcService = scene->dependencyResolver()->resolve<IRpcService>();
-				auto observable = rpcService->rpc(this->_createUserRoute.c_str(), [rq](bytestream* stream) {
-					msgpack::pack(stream, rq);
-				}, PacketPriority::MEDIUM_PRIORITY);
-				auto onNext = [this, tce, result](Stormancer::Packetisp_ptr packet) {
-					LoginResult loginResult(packet->stream);
-					if (loginResult.success)
-					{
-						result->set();
-						tce.set(result);
-					}
-					else
-					{
-						result->setError(1, loginResult.errorMsg.c_str());
-						tce.set(result);
-						ILogger::instance()->log(LogLevel::Error, "AuthenticationService", (std::string("An error occured while creating an account :")+loginResult.errorMsg).c_str(),"");
-					}
-				};
-				auto onError = std::function<void(const char*)>([tce, result](const char* error) {
-					result->setError(1, error);
-					tce.set(result);
-					ILogger::instance()->log(LogLevel::Error, "AuthenticationService", ("An error occured while creating an account. : "+std::string(error)).c_str(),"");
-				});
-				auto onComplete = []() {
-				};
-				auto subscription = observable->subscribe(onNext, onError, onComplete);
-			});
-		}
-		catch (const std::exception& ex)
+			auto scene = scenePtr.lock();
+			auto rpcService = scene->dependencyResolver()->resolve<IRpcService>();
+			return rpcService->rpc<CreateUserParameters, LoginResult>(this->_createUserRoute, rq);
+		})
+			.then([](LoginResult loginResult)
 		{
-			result->setError(1, ex.what());
-			tce.set(result);
-		}
-		return pplx::create_task(tce);
-	}
-	pplx::task<std::shared_ptr<Result<Scene*>>> AuthenticationService::login(const stringMap authenticationContext)
-	{
-		pplx::task_completion_event<std::shared_ptr<Result<Scene*>>> tce;
-		auto result = std::make_shared<Result<Scene*>>();
-		try
-		{
-
-			if (_authenticated)
+			if (!loginResult.success)
 			{
-				throw std::runtime_error("Authentication service already authenticated.");
+				ILogger::instance()->log(LogLevel::Error, "AuthenticationService", "An error occured while creating an account.", loginResult.errorMsg);
+				throw std::runtime_error(loginResult.errorMsg);
 			}
-
-			getAuthenticationScene().then([this, authenticationContext, tce, result](pplx::task<Scene*> t) {
-				
-				try
-				{
-					auto scene = t.get();
-
-					this->setConnectionState(GameConnectionState::Authenticating);
-
-					auto rpcService = scene->dependencyResolver()->resolve<IRpcService>();
-					rpcService
-					auto observable = rpcService->rpc(_loginRoute.c_str(), [authenticationContext](bytestream* stream) {
-						msgpack::pack(stream, authenticationContext);
-					}, PacketPriority::MEDIUM_PRIORITY);
-					auto onNext = [this, tce, result](Stormancer::Packetisp_ptr packet) {
-						LoginResult loginResult(packet->stream);
-						if (loginResult.success)
-						{
-							this->setConnectionState(GameConnectionState::Authenticated);
-							_userId = loginResult.userId;
-							_username = loginResult.username;
-							_client->getScene(loginResult.token.c_str()).then([tce, result](Result<Scene*>* result2) {
-								*result = *result2;
-								tce.set(result);
-								destroy(result2);
-							});
-						}
-						else
-						{
-							this->setConnectionState(GameConnectionState::Disconnected);
-							result->setError(1, loginResult.errorMsg.c_str());
-							tce.set(result);
-							ILogger::instance()->log(LogLevel::Error, "AuthenticationService", (std::string("An error occured while trying to connect to the redirected scene : ") +loginResult.errorMsg).c_str(),"");
-						}
-					};
-					auto onError = std::function<void(const char*)>([tce, result](const char* error) {
-						result->setError(1, error);
-						tce.set(result);
-						ILogger::instance()->log(LogLevel::Error, "AuthenticationService", ("An error occured while authenticating the user : "+std::string(error)).c_str(),"");
-					});
-					auto onComplete = []() {
-					};
-					auto subscription = observable->subscribe(onNext, onError, onComplete);
-				}
-				catch (const std::exception& ex)
-				{
-					result->setError(1, ex.what());
-					tce.set(result);
-				}
-			});
-		}
-		catch (const std::exception& ex)
-		{
-			result->setError(1, ex.what());
-			tce.set(result);
-		}
-		return pplx::create_task(tce,this->_client->dependencyResolver()->resolve<IActionDispatcher>());
+		});
 	}
 
-	pplx::task<Scene*> AuthenticationService::getAuthenticationScene()
+	pplx::task<ScenePtr> AuthenticationService::login(const std::unordered_map<std::string, std::string> authenticationContext)
+	{
+		if (_authenticated)
+		{
+			return pplx::task_from_exception<ScenePtr>(std::runtime_error("Authentication service already authenticated."));
+		}
+
+		return getAuthenticationScene().then([this, authenticationContext](ScenePtr scenePtr)
+		{
+			auto scene = scenePtr.lock();
+			this->setConnectionState(GameConnectionState::Authenticating);
+			auto rpcService = scene->dependencyResolver()->resolve<IRpcService>();
+
+			return rpcService->rpc<const std::unordered_map<std::string, std::string>, LoginResult>(_loginRoute, authenticationContext);
+		})
+			.then([this](LoginResult loginResult)
+		{
+			if (loginResult.success)
+			{
+				this->setConnectionState(GameConnectionState::Authenticated);
+				_userId = loginResult.userId;
+				_username = loginResult.username;
+				return _client->getScene(loginResult.token);
+			}
+			else
+			{
+				this->setConnectionState(GameConnectionState::Disconnected);
+				throw std::runtime_error(loginResult.errorMsg);
+			}
+		});
+	}
+
+	pplx::task<ScenePtr> AuthenticationService::getAuthenticationScene()
 	{
 		if (!_authenticationSceneRetrieving)
 		{
 			_authenticationSceneRetrieving = true;
-			pplx::task_completion_event<Scene*> tce;
-			_client->getPublicScene(_authenticationSceneName.c_str()).then([tce](Result<Scene*>* result2) {
-				
-				if (result2->success())
+
+			_authenticationScene = _client->getPublicScene(_authenticationSceneName)
+				.then([](ScenePtr scene)
+			{
+				return scene.lock()->connect().then([scene]()
 				{
-					auto scene = result2->get();
-					scene->connect().then([tce, scene](Result<>* result) {
-						if (result->success())
-						{
-							
-							tce.set(scene);
-						}
-						else
-						{
-							tce.set_exception(std::runtime_error(result->reason()));
-						}
-						destroy(result);
-					});
-				}
-				else
-				{
-					tce.set_exception(std::runtime_error(result2->reason()));
-				}
-				destroy(result2);
+					return scene;
+				});
 			});
-			_authenticationScene = pplx::create_task(tce);
 		}
 		return _authenticationScene;
 	}
 
-	pplx::task<Result<>*> AuthenticationService::logout()
+
+	pplx::task<void> AuthenticationService::logout()
 	{
-		auto result = new Result<>();
-		pplx::task_completion_event<Result<>*> tce;
-		try
+		if (_authenticated)
 		{
-			if (_authenticated)
+			_authenticated = false;
+			getAuthenticationScene().then([](ScenePtr scene)
 			{
-				_authenticated = false;
-				getAuthenticationScene().then([tce, result](pplx::task<Scene*> t) {
-					try
-					{
-						auto scene = t.get();
-						scene->disconnect().then([scene, tce, result](Result<>* result2) {
-							if (result2->success())
-							{
-								destroy(scene);
-								result->set();
-							}
-							else
-							{
-								result->setError(1, result2->reason());
-							}
-							tce.set(result);
-							destroy(result2);
-						});
-					}
-					catch (const std::exception& ex)
-					{
-						result->setError(1, ex.what());
-						tce.set(result);
-					}
-				});
-			}
-			else
-			{
-				result->set();
-				tce.set(result);
-			}
+				return scene.lock()->disconnect();
+			});
 		}
-		catch (const std::exception& ex)
+		else
 		{
-			result->setError(1, ex.what());
-			tce.set(result);
+			return pplx::task_from_result();
 		}
-		return pplx::create_task(tce);
 	}
 
-	const char* AuthenticationService::userId()
+	std::string AuthenticationService::userId()
 	{
-		return _userId.c_str();
+		return _userId;
 	}
 
-	const char* AuthenticationService::GetUsername()
+	std::string AuthenticationService::GetUsername()
 	{
-		return _username.c_str();
+		return _username;
 	}
 
-	pplx::task<Result<Scene*>*> AuthenticationService::getPrivateScene(std::string sceneId)
+	pplx::task<ScenePtr> AuthenticationService::getPrivateScene(std::string sceneId)
 	{
-		auto result = new Result<Scene*>();
-		return this->getAuthenticationScene().then([sceneId, result, this](Scene* authScene) {
+		return this->getAuthenticationScene().then([sceneId, this](ScenePtr authScene)
+		{
+			auto rpcService = authScene.lock()->dependencyResolver()->resolve<IRpcService>();
 
-			auto rpcService = authScene->dependencyResolver()->resolve<IRpcService>();
-			//Get scene token
-			auto observable = rpcService->rpc("sceneauthorization.gettoken", [sceneId](bytestream* stream) {
-				msgpack::pack(stream, sceneId);
-			}, PacketPriority::MEDIUM_PRIORITY);
-
-			auto tce = pplx::task_completion_event<Result<Scene*>*>();
-			observable->subscribe([tce, this, result](Stormancer::Packetisp_ptr packet) {
-
-				std::string buffer;
-				*packet->stream >> buffer;
-				msgpack::unpacked r;
-				msgpack::unpack(&r, buffer.data(), buffer.size());
-				std::string str;
-				r.get().convert(&str);
-
-				//Connect to scene using token
-				_client->getScene(str.data()).then([tce, result](Stormancer::Result<Stormancer::Scene*>* r) {
-					if (r->success())
-					{
-						delete result;
-						tce.set(r);
-					}
-					else
-					{
-						result->setError(1, r->reason());
-						tce.set(result);
-					}
-				});
-
-			},
-				[tce, result](const char* errorMsg) {
-				result->setError(1, errorMsg);
-				tce.set(result);
-			},
-				[]() {});
-			return pplx::create_task(tce);
-
+			return rpcService->rpc<std::string, std::string>("sceneauthorization.gettoken", sceneId);
+		})
+			.then([this](std::string token)
+		{
+			return _client->getScene(token);
 		});
+
 	}
 
 
@@ -365,31 +215,31 @@ namespace Stormancer
 	}
 
 
-	pplx::task<std::shared_ptr<Result<void>>> AuthenticationService::requestPasswordChange(std::string email)
+	pplx::task<void> AuthenticationService::requestPasswordChange(std::string email)
 	{
-		return this->getAuthenticationScene().then([email](Scene* authScene) {
-
-			auto rpcService = authScene->dependencyResolver()->resolve<IRpcService>();
+		return this->getAuthenticationScene().then([email](ScenePtr authScene)
+		{
+			auto rpcService = authScene.lock()->dependencyResolver()->resolve<IRpcService>();
 			return rpcService->rpcVoid<std::string>("provider.loginpassword.requestPasswordRecovery", email);
 		});
 	}
-	pplx::task<std::shared_ptr<Result<void>>> AuthenticationService::changePassword(std::string email, std::string code, std::string newPassword)
+	pplx::task<void> AuthenticationService::changePassword(std::string email, std::string code, std::string newPassword)
 	{
 		auto parameter = ChangePasswordParameters();
 		parameter.email = email;
 		parameter.code = code;
 		parameter.newPassword = newPassword;
 
-		return this->getAuthenticationScene().then([parameter](Scene* authScene) {
-
-			auto rpcService = authScene->dependencyResolver()->resolve<IRpcService>();
+		return this->getAuthenticationScene().then([parameter](ScenePtr authScene)
+		{
+			auto rpcService = authScene.lock()->dependencyResolver()->resolve<IRpcService>();
 			return rpcService->rpcVoid<ChangePasswordParameters>("provider.loginpassword.resetPassword", parameter);
 		});
 	}
 
-	pplx::task<std::shared_ptr<Result<Scene*>>> AuthenticationService::impersonate(std::string provider, std::string claimPath, std::string uid, std::string secret)
+	pplx::task<ScenePtr> AuthenticationService::impersonate(std::string provider, std::string claimPath, std::string uid, std::string secret)
 	{
-		stringMap authContext{
+		std::unordered_map<std::string, std::string> authContext{
 			{ "provider", "impersonation" },
 			{ "secret", secret } ,
 			{"impersonated-provider",provider},

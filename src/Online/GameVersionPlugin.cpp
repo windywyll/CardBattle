@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "stormancer.h"
 #include "GameVersionPlugin.h"
 #include "GameVersionService.h"
 
@@ -11,7 +11,7 @@ namespace Stormancer
 		{
 			auto name = scene->getHostMetadata("stormancer.gameVersion");
 
-			if (name && std::strlen(name) > 0)
+			if (name.length() > 0)
 			{
 				auto service = std::make_shared<GameVersionService>(scene);
 				scene->dependencyResolver()->registerDependency<GameVersionService>(service);

@@ -6,9 +6,6 @@ namespace Stormancer
 	struct LoginResult
 	{
 	public:
-		LoginResult(Stormancer::bytestream* stream);
-
-	public:
 		std::string errorMsg;
 		bool success;
 		std::string token;
@@ -20,8 +17,8 @@ namespace Stormancer
 	};
 	struct CreateUserParameters
 	{
-	
-		
+
+
 	public:
 		/// <summary>
 		/// Player login
@@ -46,7 +43,7 @@ namespace Stormancer
 	public:
 		MSGPACK_DEFINE(login, password, email, userData);
 	};
-	
+
 	struct ChangePasswordParameters
 	{
 	public:
@@ -63,33 +60,33 @@ namespace Stormancer
 		AuthenticationService(Client* client);
 		virtual ~AuthenticationService();
 
-		const char* authenticationSceneName();
-		void setAuthenticationSceneName(const char* name);
+		std::string authenticationSceneName();
+		void setAuthenticationSceneName(std::string name);
 
-		const char* createUserRoute();
-		void setCreateUserRoute(const char* name);
+		std::string createUserRoute();
+		void setCreateUserRoute(std::string name);
 
-		const char* loginRoute();
-		void setLoginRoute(const char* name);
+		std::string loginRoute();
+		void setLoginRoute(std::string name);
 
-		pplx::task<Result<>*> createAccount(std::string login, std::string password, std::string email, std::string key, std::string pseudo);
-		pplx::task<std::shared_ptr<Result<Scene*>>> login(std::string email, std::string password);
-		pplx::task<std::shared_ptr<Result<Scene*>>> login(const stringMap authenticationContext);
-		pplx::task<Result<Scene*>*> getPrivateScene(std::string sceneId);
-		pplx::task<std::shared_ptr<Result<Scene*>>> steamLogin(std::string steamTicket);
+		virtual pplx::task<void> createAccount(std::string login, std::string password, std::string email, std::string key, std::string pseudo) override;
+		virtual pplx::task<ScenePtr> login(std::string email, std::string password) override;
+		virtual pplx::task<ScenePtr> login(const std::unordered_map<std::string, std::string> authenticationContext) override;
+		virtual pplx::task<ScenePtr> getPrivateScene(std::string sceneId) override;
+		virtual pplx::task<ScenePtr> steamLogin(std::string steamTicket) override;
 
 		//Impersonate an user using the impersonation plugin. The plugin should be disabled in production environments.
-		pplx::task<std::shared_ptr<Result<Scene*>>> impersonate(std::string provider,std::string claimPath, std::string uid, std::string impersonationSecret);
+		virtual pplx::task<ScenePtr> impersonate(std::string provider, std::string claimPath, std::string uid, std::string impersonationSecret) override;
 
-		pplx::task<std::shared_ptr<Result<void>>> requestPasswordChange(std::string email);
-		pplx::task<std::shared_ptr<Result<void>>> changePassword(std::string email, std::string code, std::string newPassword);
+		virtual pplx::task<void> requestPasswordChange(std::string email) override;
+		virtual pplx::task<void> changePassword(std::string email, std::string code, std::string newPassword) override;
 
-		pplx::task<Scene*> getAuthenticationScene();
+		virtual pplx::task<ScenePtr> getAuthenticationScene() override;
 
-		pplx::task<Result<>*> logout();
+		virtual pplx::task<void> logout() override;
 
-		const char* userId();
-		const char* GetUsername();
+		std::string userId();
+		std::string GetUsername();
 
 		GameConnectionState connectionState() const;
 		Action<GameConnectionState>& connectionStateChangedAction();
@@ -107,8 +104,10 @@ namespace Stormancer
 		std::string _userId;
 		std::string _username;
 
-		Client* _client = nullptr;
-		pplx::task<Scene*> _authenticationScene;
+		Client* _client;
+		pplx::task<ScenePtr> _authenticationScene;
+
+
 
 		Action<GameConnectionState> _onConnectionStateChanged;
 		GameConnectionState _connectionState;

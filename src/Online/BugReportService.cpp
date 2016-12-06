@@ -1,16 +1,16 @@
-#include "stdafx.h"
+#include "stormancer.h"
 #include "BugReportService.h"
 
 namespace Stormancer
 {
 
-	BugReportService::BugReportService(Stormancer::Scene* scene)
+	BugReportService::BugReportService(Stormancer::ScenePtr scene)
 	{
 		this->_scene = scene;
-		this->_rpc = scene->dependencyResolver()->resolve<IRpcService>();
+		this->_rpc = scene.lock()->dependencyResolver()->resolve<IRpcService>();
 	}
 
-	pplx::task<std::shared_ptr<Result<void>>> BugReportService::ReportBug(std::string category, std::string comments, std::vector<AttachedFileDescriptor> files)
+	pplx::task<void> BugReportService::ReportBug(std::string category, std::string comments, std::vector<AttachedFileDescriptor> files)
 	{
 		auto metadata = BugReportMetadata();
 		metadata.category = category;

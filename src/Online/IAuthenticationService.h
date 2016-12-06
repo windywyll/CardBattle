@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+#include "stormancer.h"
 
 namespace Stormancer
 {
@@ -16,27 +16,27 @@ namespace Stormancer
 	class IAuthenticationService
 	{
 	public:
-		virtual const char* authenticationSceneName() = 0;
-		virtual void setAuthenticationSceneName(const char* name) = 0;
+		virtual std::string authenticationSceneName() = 0;
+		virtual void setAuthenticationSceneName(std::string name) = 0;
 
-		virtual const char* createUserRoute() = 0;
-		virtual void setCreateUserRoute(const char* name) = 0;
+		virtual  std::string createUserRoute() = 0;
+		virtual void setCreateUserRoute(std::string name) = 0;
 
-		virtual const char* loginRoute() = 0;
-		virtual void setLoginRoute(const char* name) = 0;
+		virtual  std::string loginRoute() = 0;
+		virtual void setLoginRoute(std::string name) = 0;
 
-		virtual pplx::task<Result<>*> createAccount(std::string login, std::string password, std::string email, std::string key,std::string pseudo)=0;
-		virtual pplx::task<std::shared_ptr<Result<Scene*>>> login(std::string pseudo, std::string password) = 0;
-		virtual pplx::task<std::shared_ptr<Result<Scene*>>> login(const stringMap authenticationContext) = 0;
-		virtual pplx::task<std::shared_ptr<Result<Scene*>>> impersonate(std::string provider, std::string claimPath, std::string uid, std::string impersonationSecret) = 0;
-		virtual pplx::task<std::shared_ptr<Result<Scene*>>> steamLogin(std::string steamTicket) = 0;
+		virtual pplx::task<void> createAccount(std::string login, std::string password, std::string email, std::string key,std::string pseudo)=0;
+		virtual pplx::task<ScenePtr> login(std::string pseudo, std::string password) = 0;
+		virtual pplx::task<ScenePtr> login(const std::unordered_map<std::string,std::string> authenticationContext) = 0;
+		virtual pplx::task<ScenePtr> impersonate(std::string provider, std::string claimPath, std::string uid, std::string impersonationSecret) = 0;
+		virtual pplx::task<ScenePtr> steamLogin(std::string steamTicket) = 0;
 
-		virtual pplx::task<Scene*> getAuthenticationScene() = 0;
+		virtual pplx::task<ScenePtr> getAuthenticationScene() = 0;
 		
-		virtual pplx::task<Result<Scene*>*> getPrivateScene(std::string sceneId) = 0;
+		virtual pplx::task<ScenePtr> getPrivateScene(std::string sceneId) = 0;
 
-		virtual pplx::task<std::shared_ptr<Result<void>>> requestPasswordChange(std::string email) = 0;
-		virtual pplx::task<std::shared_ptr<Result<void>>> changePassword(std::string email, std::string code, std::string newPassword) = 0;
+		virtual pplx::task<void> requestPasswordChange(std::string email) = 0;
+		virtual pplx::task<void> changePassword(std::string email, std::string code, std::string newPassword) = 0;
 		/// <summary>
 		/// Gets a scene token from the server
 		/// </summary>
@@ -44,10 +44,10 @@ namespace Stormancer
 		/// <returns>Scene object to configure then connect to.</returns>
 		//virtual pplx::task<Result<Scene*>*> getPrivateScene(const char* sceneId) = 0;
 
-		virtual pplx::task<Result<>*> logout() = 0;
+		virtual pplx::task<void> logout() = 0;
 
-		virtual const char* userId() = 0;
-		virtual const char* GetUsername() = 0;
+		virtual std::string userId() = 0;
+		virtual std::string GetUsername() = 0;
 
 		virtual GameConnectionState connectionState() const= 0;
 		virtual Action<GameConnectionState>& connectionStateChangedAction() = 0;

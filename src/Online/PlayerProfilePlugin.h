@@ -1,53 +1,57 @@
 #pragma once
-#include "stormancer.h"
+#include "headers.h"
+#include <stormancer.h>
 namespace Stormancer
 {
 
 	template<class T>
-	class PlayerProfileService<T>
+	class PlayerProfileService
 	{
 	public:
-		PlayerProfileService(Scene* scene)
+		PlayerProfileService(ScenePtr scene)
 		{
 			_scene = scene;
 		}
 	public:
-		pplx::task<std::shared_ptr<Result<T>>> Get()
+		pplx::task<T> Get()
 		{
-			auto rpc = _scene->dependencyResolver()->resolve<IRpcService>();
+			std::shared_ptr<IRpcService> rpc = _scene.lock()->dependencyResolver()->template resolve<IRpcService>();
 			return rpc->rpc<T>("profiles.getsingle");
 		}
 
-		pplx::task<std::shared_ptr<Result<void>>> Reset()
+		pplx::task<void> Reset()
 		{
-			auto rpc = _scene->dependencyResolver()->resolve<IRpcService>();
-			return rpc->rpcVoid("profiles.delete");
+			auto rpc = _scene.lock()->dependencyResolver()->template resolve<IRpcService>();
+			return rpc->rpcVoid("profiles.delete", 0);
 		}
 
 	private:
-		Scene* _scene;
+		ScenePtr _scene;
 	};
 
 
 	template<class T>
-	class PlayerProfilePlugin<T> : IPlugin
+	class PlayerProfilePlugin : public IPlugin
 	{
-		void registerSceneDependencies(Scene* scene)
+		virtual void registerSceneDependencies(Scene* scene) override
 		{
 			if (scene)
 			{
 				auto name = scene->getHostMetadata("WindJammers.profiles");
 
-				if (name && std::strlen(name) > 0)
+				if (name.length() > 0)
 				{
-					auto service = std::make_shared<PlayerProfileService<T>>(scene);
+					auto service = std::make_shared<PlayerProfileService<T>>(scene->shared_from_this());
 					scene->dependencyResolver()->registerDependency(service);
 				}
 			}
 			
 		};
 
-		
+		void destroy() override
+		{
+			delete this;
+		}
 	};
 
 	
