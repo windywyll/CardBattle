@@ -1,5 +1,6 @@
 #pragma once
 #include "stormancer.h"
+#include "MatchMakingService.h"
 
 namespace Stormancer
 {

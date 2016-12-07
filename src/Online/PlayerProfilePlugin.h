@@ -1,6 +1,6 @@
 #pragma once
-#include "headers.h"
 #include <stormancer.h>
+
 namespace Stormancer
 {
 
@@ -37,7 +37,7 @@ namespace Stormancer
 		{
 			if (scene)
 			{
-				auto name = scene->getHostMetadata("WindJammers.profiles");
+				auto name = scene->getHostMetadata("stormancer.profiles");
 
 				if (name.length() > 0)
 				{

@@ -37,10 +37,9 @@ namespace Stormancer
 		
 		std::string playerId;
 		std::string pseudo;
-		int64 rank;
-		std::string division;
+		
 
-		MSGPACK_DEFINE(playerId, pseudo, rank, division);
+		MSGPACK_DEFINE(playerId, pseudo);
 	};
 
 	struct MatchmakingResponse
@@ -70,13 +69,12 @@ namespace Stormancer
 		{
 		public:
 			std::string gameId;
-			Player player1;
-			Player player2;
-			std::string hostId;
+			std::vector<Player> team1;
+			std::vector<Player> team2;
 			std::vector<std::string> optionalParameters;
 			
 
-			MSGPACK_DEFINE(gameId, player1, player2, hostId, optionalParameters);
+			MSGPACK_DEFINE(gameId, team1, team2, optionalParameters);
 		};
 
 		struct ReadyVerificationRequest

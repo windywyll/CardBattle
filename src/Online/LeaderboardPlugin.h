@@ -58,7 +58,7 @@ namespace Stormancer
 
 		web::json::object getScoreData()
 		{
-			return web::json::value::parse(document).as_object();
+			return web::json::value::parse(utility::string_t(document.begin(),document.end())).as_object();
 		}
 
 		MSGPACK_DEFINE(id, score, createdOn, document);

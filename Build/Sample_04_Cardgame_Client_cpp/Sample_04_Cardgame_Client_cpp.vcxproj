@@ -163,7 +163,10 @@
     <ClInclude Include="..\..\src\Online\LeaderboardPlugin.h" />
     <ClInclude Include="..\..\src\Online\MatchmakingPlugin.h" />
     <ClInclude Include="..\..\src\Online\MatchMakingService.h" />
+    <ClInclude Include="..\..\src\Online\OnlineDefines.h" />
+    <ClInclude Include="..\..\src\Online\PlayerProfile.h" />
     <ClInclude Include="..\..\src\Online\PlayerProfilePlugin.h" />
+    <ClInclude Include="..\..\src\Online\TurnByTurnPlugin.h" />
     <ClInclude Include="..\..\src\stdafx.h" />
     <ClInclude Include="..\..\src\targetver.h" />
   </ItemGroup>
@@ -175,8 +178,10 @@
     <ClCompile Include="..\..\src\Online\GameSession.cpp" />
     <ClCompile Include="..\..\src\Online\GameVersionPlugin.cpp" />
     <ClCompile Include="..\..\src\Online\GameVersionService.cpp" />
+    <ClCompile Include="..\..\src\Online\LeaderboardPlugin.cpp" />
     <ClCompile Include="..\..\src\Online\MatchmakingPlugin.cpp" />
     <ClCompile Include="..\..\src\Online\MatchmakingService.cpp" />
+    <ClCompile Include="..\..\src\Online\TurnByTurnPlugin.cpp" />
     <ClCompile Include="..\..\src\Sample_04_Cardgame_Client_cpp.cpp" />
     <ClCompile Include="..\..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

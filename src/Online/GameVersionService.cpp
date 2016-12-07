@@ -1,4 +1,4 @@
-#include "stormancer.h"
+#include "stdafx.h"
 #include "GameVersionService.h"
 
 namespace Stormancer

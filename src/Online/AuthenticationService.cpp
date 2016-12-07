@@ -1,6 +1,5 @@
-#include "stormancer.h"
+#include "stdafx.h"
 #include "AuthenticationService.h"
-#include "rx.hpp"
 
 
 namespace Stormancer
@@ -150,7 +149,7 @@ namespace Stormancer
 		if (_authenticated)
 		{
 			_authenticated = false;
-			getAuthenticationScene().then([](ScenePtr scene)
+			return getAuthenticationScene().then([](ScenePtr scene)
 			{
 				return scene.lock()->disconnect();
 			});

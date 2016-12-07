@@ -1,4 +1,4 @@
-#include "stormancer.h"
+#include "stdafx.h"
 #include "MatchmakingService.h"
 //#include <ostringstream>
 
@@ -11,7 +11,7 @@ namespace Stormancer
 		{
 			ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase;
 		}
-		for (auto i = 0; i < bytes.length(); ++i)
+		for (size_t i = 0; i < bytes.length(); ++i)
 		{
 			if (i)
 			{
