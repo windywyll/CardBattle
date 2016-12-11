@@ -81,6 +81,7 @@ namespace Stormancer
 	public:
 		GameSessionService(Stormancer::Scene* scene);
 
+		pplx::task<std::shared_ptr<Result<GameServerInformations>>> waitServerReady();
 		pplx::task<std::shared_ptr<Result<GameServerInformations>>> waitServerReady(pplx::cancellation_token);
 
 		std::vector<SessionPlayer> getConnectedPlayers();
@@ -90,7 +91,7 @@ namespace Stormancer
 		template<typename TOut, typename TIn>
 		pplx::task<std::shared_ptr<Result<TOut>>> sendGameResults(TIn results)
 		{
-			auto rpc = _scene.lock()->dependencyResolver()->resolve<IRpcService>();
+			auto rpc = _scene->dependencyResolver()->resolve<IRpcService>();
 			return rpc->rpc<TIn, TOut>("gamesession.postresults", results);
 		}
 

@@ -73,6 +73,11 @@ void Stormancer::TurnByTurnService::onDesyncErrorCallback(std::function<void(std
 	_onDesync = callback;
 }
 
+void Stormancer::TurnByTurnService::onReplayTLog(std::function<void(std::vector<TransactionLogItem>)> callback)
+{
+	_onReplayTLog = callback;
+}
+
 void Stormancer::TurnByTurnService::onUpdateGameCallback(std::function<int(UpdateDto)> callback)
 {
 	_onUpdateGame = callback;
@@ -80,9 +85,14 @@ void Stormancer::TurnByTurnService::onUpdateGameCallback(std::function<int(Updat
 }
 
 
-pplx::task<void> Stormancer::TurnByTurnService::submitTransaction(std::string playerId, std::string cmd, web::json::value args)
+pplx::task<void> Stormancer::TurnByTurnService::submitTransaction(std::string playerId, std::string cmd,const web::json::value& args) const
 {
 	auto json = *args.serialize();
 	TransactionCommandDto dto{ playerId,cmd,std::string(json.begin(),json.end()) };
 	return _scene->dependencyResolver()->resolve<IRpcService>()->rpcVoid("transaction.submit", dto);
+}
+
+pplx::task<void> Stormancer::TurnByTurnService::mapPlayer(std::string playerId) const
+{
+	return _scene->dependencyResolver()->resolve<IRpcService>()->rpcVoid("transaction.addplayer", playerId);
 }

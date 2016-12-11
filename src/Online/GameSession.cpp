@@ -30,6 +30,12 @@ namespace Stormancer
 		});
 
 	}
+	
+	pplx::task<std::shared_ptr<Result<GameServerInformations>>> GameSessionService::waitServerReady()
+	{
+		auto cts = pplx::cancellation_token_source();
+		return waitServerReady(cts.get_token());
+	}
 
 	pplx::task<std::shared_ptr<Result<GameServerInformations>>> GameSessionService::waitServerReady(pplx::cancellation_token token)
 	{
