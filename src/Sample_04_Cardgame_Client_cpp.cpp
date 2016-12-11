@@ -120,7 +120,15 @@ int main(int argc, char *argv[])
 		std::cin >> n;
 		auto json = web::json::value();
 		json[L"value"] = n;
-		transactionBroker->submitTransaction(auth->userId(), "add", json).get();
+		try
+		{
+			auto t = transactionBroker->submitTransaction(auth->userId(), "add", json);
+			t.get();
+		}
+		catch(std::exception& ex)
+		{
+			std::cout << ex.what();
+		}
 	}
 
 	std::cout << "disconnecting...";
