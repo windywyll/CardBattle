@@ -120,6 +120,7 @@ int main(int argc, char *argv[])
 		std::cin >> n;
 		auto json = web::json::value();
 		json[L"value"] = n;
+	
 		try
 		{
 			auto t = transactionBroker->submitTransaction(auth->userId(), "add", json);
