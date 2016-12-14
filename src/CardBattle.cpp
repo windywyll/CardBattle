@@ -12,7 +12,7 @@ int ApplyTransaction(Stormancer::UpdateDto t, int& gameState)
 {
 	if (t.cmd == "start")
 	{
-		gameState = t.json_args()[L"seed"].as_integer();
+		std::srand(t.json_args()[L"seed"].as_integer());
 	}
 	else if (t.cmd == "add")
 	{

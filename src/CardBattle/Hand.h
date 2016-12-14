@@ -6,9 +6,14 @@ class Hand
 {
 public:
 	Hand();
+	Hand(Card* _hand, int _sizeInitial);
 	~Hand();
 
+	void drawCard(Card* _newCard);
+	void discardCard();
+
 private:
-	std::vector<Card> cardsList;
+	std::vector<Card*> cardList;
+	int nbMaxCardInHand;
 };
 

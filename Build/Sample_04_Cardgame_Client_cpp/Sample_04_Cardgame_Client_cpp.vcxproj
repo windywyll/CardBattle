@@ -23,6 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Sample_04_Cardgame_Client_cpp</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>CardBattle</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -149,6 +150,11 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\CardBattle\Board.h" />
+    <ClInclude Include="..\..\src\CardBattle\Card.h" />
+    <ClInclude Include="..\..\src\CardBattle\Deck.h" />
+    <ClInclude Include="..\..\src\CardBattle\Hand.h" />
+    <ClInclude Include="..\..\src\CardBattle\Player.h" />
     <ClInclude Include="..\..\src\Logger.h" />
     <ClInclude Include="..\..\src\Online\AuthenticationPlugin.h" />
     <ClInclude Include="..\..\src\Online\AuthenticationService.h" />
@@ -168,6 +174,11 @@
     <ClInclude Include="..\..\src\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\CardBattle\Board.cpp" />
+    <ClCompile Include="..\..\src\CardBattle\Card.cpp" />
+    <ClCompile Include="..\..\src\CardBattle\Deck.cpp" />
+    <ClCompile Include="..\..\src\CardBattle\Hand.cpp" />
+    <ClCompile Include="..\..\src\CardBattle\Player.cpp" />
     <ClCompile Include="..\..\src\Logger.cpp" />
     <ClCompile Include="..\..\src\Online\AuthenticationPlugin.cpp" />
     <ClCompile Include="..\..\src\Online\AuthenticationService.cpp" />
@@ -179,7 +190,7 @@
     <ClCompile Include="..\..\src\Online\MatchmakingPlugin.cpp" />
     <ClCompile Include="..\..\src\Online\MatchmakingService.cpp" />
     <ClCompile Include="..\..\src\Online\TurnByTurnPlugin.cpp" />
-    <ClCompile Include="..\..\src\Sample_04_Cardgame_Client_cpp.cpp" />
+    <ClCompile Include="..\..\src\CardBattle.cpp" />
     <ClCompile Include="..\..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

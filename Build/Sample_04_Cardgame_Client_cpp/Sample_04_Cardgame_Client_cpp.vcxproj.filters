@@ -16,6 +16,9 @@
     <Filter Include="Online">
       <UniqueIdentifier>{b24c0317-8900-4d86-b711-33ebf8a69f4a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CardBattle">
+      <UniqueIdentifier>{c607c24b-baa0-470f-8836-bbe730d2e857}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -72,12 +75,24 @@
     <ClInclude Include="..\..\src\Online\TurnByTurnPlugin.h">
       <Filter>Online</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\CardBattle\Board.h">
+      <Filter>CardBattle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CardBattle\Card.h">
+      <Filter>CardBattle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CardBattle\Deck.h">
+      <Filter>CardBattle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CardBattle\Hand.h">
+      <Filter>CardBattle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CardBattle\Player.h">
+      <Filter>CardBattle</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Logger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Sample_04_Cardgame_Client_cpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\stdafx.cpp">
@@ -112,6 +127,24 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Online\TurnByTurnPlugin.cpp">
       <Filter>Online</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CardBattle\Board.cpp">
+      <Filter>CardBattle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CardBattle\Card.cpp">
+      <Filter>CardBattle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CardBattle\Deck.cpp">
+      <Filter>CardBattle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CardBattle\Hand.cpp">
+      <Filter>CardBattle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CardBattle\Player.cpp">
+      <Filter>CardBattle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CardBattle.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
