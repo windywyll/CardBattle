@@ -6,6 +6,9 @@ using namespace std;
 GameManager::GameManager()
 {
 	firstPlayerSet = false;
+
+	player1 = nullptr;
+	player2 = nullptr;
 }
 
 
@@ -45,7 +48,7 @@ void GameManager::setupTurn(int id)
 
 	isYou = false;
 	
-	if (id == playing.name)
+	if (id == playing->name)
 		isYou = true;
 }
 
@@ -54,12 +57,12 @@ void GameManager::AddPlayer(int id)
 	if (firstPlayerSet)
 	{
 		std::cout << "Player2: " << id << std::endl;
-		player2 = Player(id, 20, currentSeed);
+		player2 = new Player(id, 20, currentSeed);
 	}
 	else
 	{
 		std::cout << "Player1: " << id << std::endl;
-		player1 = Player(id, 20, currentSeed);
+		player1 = new Player(id, 20, currentSeed);
 		firstPlayerSet = true;
 	}
 	
@@ -67,12 +70,12 @@ void GameManager::AddPlayer(int id)
 
 void GameManager::startTurn()
 {
-	playing.beginTurn(nbCardToDrawEachTurn);
+	playing->beginTurn(nbCardToDrawEachTurn);
 }
 
 void GameManager::mainPhase()
 {
-	if (!playing.canPlaySpell)
+	if (!playing->canPlaySpell)
 	{
 		playingCard = false;
 		return;
@@ -83,12 +86,12 @@ void GameManager::mainPhase()
 	if (isYou)
 		cout << "----- ENEMY -----" << endl;
 
-	enemy.displayBoard();
+	enemy->displayBoard();
 
-	playing.displayBoard();
+	playing->displayBoard();
 
 	if (isYou)
-		playing.displayHand();
+		playing->displayHand();
 }
 
 int GameManager::choiceMP()
@@ -132,7 +135,7 @@ void GameManager::playCard(int indexCard)
 	}
 	else
 	{
-		playing.castSpell(indexCard);
+		playing->castSpell(indexCard);
 	}
 }
 
@@ -148,12 +151,12 @@ void GameManager::battlePhase()
 	if (isYou)
 		cout << "----- ENEMY -----" << endl;
 
-	enemy.displayBoard();
+	enemy->displayBoard();
 
 	if (isYou)
 		cout << -1 << " - EnemyPlayer";
 
-	playing.displayBoard();
+	playing->displayBoard();
 }
 
 vector<int> GameManager::choiceBP()
@@ -212,14 +215,14 @@ void GameManager::playBattle(int _atk, int _def)
 		return;
 	}
 
-	Card* _atkCard = playing.attackWithCreature(_atk);
+	Card* _atkCard = playing->attackWithCreature(_atk);
 
 	if (_atkCard == nullptr)
 		return;
 
 	if (_def != -1)
 	{
-		Card* _defCard = enemy.attackWithCreature(_def);
+		Card* _defCard = enemy->attackWithCreature(_def);
 
 		if (_defCard == nullptr)
 			return;
@@ -231,14 +234,14 @@ void GameManager::playBattle(int _atk, int _def)
 		case NODEATH:
 			break;
 		case ATKDEATH:
-			playing.creatureDie(_atk);
+			playing->creatureDie(_atk);
 			break;
 		case DEFDEATH:
-			enemy.creatureDie(_def);
+			enemy->creatureDie(_def);
 			break;
 		case BOTHDEATH:
-			playing.creatureDie(_atk);
-			enemy.creatureDie(_def);
+			playing->creatureDie(_atk);
+			enemy->creatureDie(_def);
 			break;
 		default:
 			break;
@@ -246,14 +249,14 @@ void GameManager::playBattle(int _atk, int _def)
 	}
 	else
 	{
-		enemy.playerTakeDamage(_atkCard->getAtk());
+		enemy->playerTakeDamage(_atkCard->getAtk());
 		EndGame();
 	}
 }
 
 void GameManager::endPhase()
 {
-	playing.endTurn();
+	playing->endTurn();
 
 	cout << "END OF ";
 
@@ -296,7 +299,7 @@ BattleOutcome GameManager::Battle(Card * _atk, Card * _def)
 
 void GameManager::EndGame()
 {
-	endOfGame =  enemy.isDead;
+	endOfGame =  enemy->isDead;
 	winnerIsYou = true;
 }
 

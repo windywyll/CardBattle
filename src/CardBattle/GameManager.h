@@ -36,8 +36,8 @@ public:
 
 	void EndGame();
 
-	Player player1, player2;
-	Player playing, enemy;
+	Player* player1, *player2;
+	Player* playing, *enemy;
 	int nbCardToDrawEachTurn;
 };
 

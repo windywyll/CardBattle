@@ -178,19 +178,21 @@ int main(int argc, char *argv[])
 
 	#pragma region Game
 	
-	bool thePlayer = true;
 	try
 	{
 		auto json = web::json::value();
 		json[L"pseudo"] = str_hash;
 		auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::Connect), json);
 		t.get();
-
-		//thePlayer = gameManager->GetCurrentPlayer(str_hash);
 	}
 	catch (std::exception& ex)
 	{
 		std::cout << ex.what();
+	}
+
+	while (gameManager->player1 == nullptr && gameManager->player2 == nullptr)
+	{
+
 	}
 
 	int n;
