@@ -7,24 +7,63 @@
 #include "Online/MatchmakingPlugin.h"
 #include "Online/TurnByTurnPlugin.h"
 #include "Online/GameSession.h"
+#include <time.h> 
+#include "GameManager.h"
+
+static std::string name;
+static unsigned int globalSeed;
+
+enum class TransactionCommand : int
+{
+	Start,
+	AddCard,
+	AttackCard,
+	Pick,
+	Wait,
+	EndTurn,
+	EndGame,
+};
 
 int ApplyTransaction(Stormancer::UpdateDto t, int& gameState)
 {
-	if (t.cmd == "start")
+	GameManager* gameManager = new GameManager();
+
+	TransactionCommand command = (TransactionCommand)std::atoi(t.cmd.c_str());
+	if (t.cmd == "Start")command = TransactionCommand::Start;
+
+	switch (command)
 	{
-		std::srand(t.json_args()[L"seed"].as_integer());
-	}
-	else if (t.cmd == "add")
-	{
+	case TransactionCommand::Start:
+		
+		GameManager::seed = 999;
+		std::cout << std::endl << "Starting with seed " << globalSeed << std::endl;
+		break;
+	case TransactionCommand::AddCard:
 		gameState += t.json_args()[L"value"].as_integer();
+		break;
+	case TransactionCommand::AttackCard:
+		break;
+	case TransactionCommand::Pick:
+		break;
+	case TransactionCommand::Wait:
+		break;
+	case TransactionCommand::EndTurn:
+		break;
+	case TransactionCommand::EndGame:
+		break;
+	default:
+		break;
 	}
+
 	return gameState;
 }
 
-
 int main(int argc, char *argv[])
 {
-	std::string login = "test";
+	std::cout << "Enter your name :" << std::endl;
+	std::cin >> name;
+	
+	std::string login = name;
 	if (argc >= 2)
 	{
 		login = std::string(argv[1]);
@@ -75,9 +114,9 @@ int main(int argc, char *argv[])
 	});
 	transactionBroker->onUpdateGameCallback([&gameState](Stormancer::UpdateDto update)
 	{
-
 		auto newHash = ApplyTransaction(update, gameState);
-		std::cout << "game state updated : " << gameState << std::endl;
+		//std::cout << "game state updated : " << gameState << std::endl;
+		std::cout << "Random Test: " << rand() % 100 << std::endl;
 		return newHash; //Returns the new hash to the server for validation
 	});
 	transactionBroker->onReplayTLog([&gameState,&running](std::vector<Stormancer::TransactionLogItem> transactions)
@@ -93,7 +132,6 @@ int main(int argc, char *argv[])
 				std::cin >> v;
 				running = false;
 				break;
-
 			}
 		}
 
@@ -105,25 +143,21 @@ int main(int argc, char *argv[])
 
 	gameSession->connect().get();//Connect to the game session
 
-
-	
-
-
 	gameSession->ready();//Inform the server we are ready to play
-	gameSession->waitServerReady().get();//
+	gameSession->waitServerReady().get();
 	std::cout << "CONNECTED" << std::endl;
 
 	int n;
 	while (running)
 	{
-		std::cout << "Enter number to add to game state." << std::endl;
+		std::cout << "Enter To test Random" << std::endl;
 		std::cin >> n;
 		auto json = web::json::value();
 		json[L"value"] = n;
 	
 		try
 		{
-			auto t = transactionBroker->submitTransaction(auth->userId(), "add", json);
+			auto t = transactionBroker->submitTransaction(auth->userId(), std::to_string((int)TransactionCommand::AddCard), json);
 			t.get();
 		}
 		catch(std::exception& ex)

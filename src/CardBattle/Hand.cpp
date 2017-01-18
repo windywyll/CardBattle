@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Hand.h"
 
 using namespace std;
@@ -6,6 +7,10 @@ Hand::Hand()
 {
 	cardList = vector<Card*>();
 	nbMaxCardInHand = 7;
+}
+
+Hand::Hand(Card * _hand, int _sizeInitial)
+{
 }
 
 Hand::~Hand()
