@@ -12,5 +12,5 @@ public:
 	void death(Card* _card);
 
 private:
-	std::vector<Card*> cardList;
+	std::vector<Card*>* cardList;
 };

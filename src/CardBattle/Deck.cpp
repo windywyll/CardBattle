@@ -7,7 +7,7 @@ Deck::Deck()
 	nbMaxCard = 40;
 	pointsToDistributeByCardMin = 5;
 	pointsToDistributeByCardMax = 22;
-	cardList = vector<Card*>();
+	cardList = new vector<Card*>();
 
 	fillDeck();
 }
@@ -15,21 +15,22 @@ Deck::Deck()
 
 Deck::~Deck()
 {
-	while (cardList.size() != 0)
+	while (cardList->size() != 0)
 	{
-		Card* temp = *cardList.end();
-		cardList.pop_back();
+		Card* temp = cardList->back();
+		cardList->pop_back();
+
 		delete temp;
 	}
 }
 
 Card* Deck::getTopCard()
 {
-	if (cardList.size() <= 0)
-		return;
+	if (cardList->size() <= 0)
+		return nullptr;
 
-	Card* toReturn = *cardList.end();
-	cardList.pop_back();
+	Card* toReturn = cardList->back();
+	cardList->pop_back();
 	return toReturn;
 }
 
@@ -42,7 +43,7 @@ void Deck::fillDeck()
 {
 	for (int i = 0; i < nbMaxCard; i++)
 	{
-		cardList.push_back(createCard());
+		cardList->push_back(createCard());
 	}
 }
 

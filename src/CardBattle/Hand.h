@@ -19,7 +19,7 @@ public:
 	void displayHand();
 
 private:
-	std::vector<Card*> cardList;
+	std::vector<Card*>* cardList;
 	int nbMaxCardInHand;
 };
 

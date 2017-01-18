@@ -3,7 +3,7 @@
 
 using namespace std;
 
-Player::Player(std::string n, int l)
+Player::Player(int n, int l, unsigned int seed)
 {
 	name = n;
 	health = l;
@@ -11,27 +11,22 @@ Player::Player(std::string n, int l)
 	nbSpellMax = 3;
 	nbSpellPlayed = 0;
 	isDead = false;
-}
 
-Player::Player()
-{
+	srand(seed);
+
+	playerDeck = new Deck();
+	playerBoard = new Board();
+	playerHand = new Hand();
+	playerCemetery = new Cemetery();
+
+	while (!playerHand->isFull)
+	{
+		playerHand->drawCard(playerDeck->getTopCard());
+	}
 }
 
 Player::~Player()
 {
-}
-
-void Player::CreatePlayer()
-{
-	playerDeck = Deck();
-	playerBoard = Board();
-	playerHand = Hand();
-	playerCemetery = Cemetery();
-
-	while (!playerHand.isFull)
-	{
-		playerHand.drawCard(playerDeck.getTopCard());
-	}
 }
 
 void Player::draw(int _nbCardToDraw)
@@ -41,18 +36,18 @@ void Player::draw(int _nbCardToDraw)
 
 	for (int i = 0; i < _nbCardToDraw; i++)
 	{
-		playerHand.drawCard(playerDeck.getTopCard());
+		playerHand->drawCard(playerDeck->getTopCard());
 	}
 }
 
 void Player::castSpell(int indexCard)
 {
-	Card* _temp = playerHand.castCard(indexCard);
+	Card* _temp = playerHand->castCard(indexCard);
 
 	if (_temp == nullptr)
 		return;
 
-	playerBoard.castCard(_temp);
+	playerBoard->castCard(_temp);
 	nbSpellPlayed++;
 
 	if (nbSpellPlayed == nbSpellMax)
@@ -69,17 +64,17 @@ void Player::playerTakeDamage(int _damage)
 
 Card * Player::attackWithCreature(int indexCard)
 {
-	return playerBoard.creatureAttack(indexCard);
+	return playerBoard->creatureAttack(indexCard);
 }
 
 void Player::creatureDie(int indexCard)
 {
-	playerCemetery.death(playerBoard.creatureDies(indexCard));
+	playerCemetery->death(playerBoard->creatureDies(indexCard));
 }
 
 void Player::beginTurn(int _nbCardToDraw)
 {
-	playerBoard.untapBoard();
+	playerBoard->untapBoard();
 	draw(_nbCardToDraw);
 	nbSpellPlayed = 0;
 	canPlaySpell = true;
@@ -88,16 +83,16 @@ void Player::beginTurn(int _nbCardToDraw)
 void Player::endTurn()
 {
 	cout << "----- HAND -----" << endl;
-	playerHand.discardCard();
+	playerHand->discardCard();
 }
 
 void Player::displayBoard()
 {
 	cout << "----- BOARD -----" << endl;
-	playerBoard.displayBoard();
+	playerBoard->displayBoard();
 }
 
 void Player::displayHand()
 {
-	playerHand.displayHand();
+	playerHand->displayHand();
 }

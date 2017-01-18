@@ -7,14 +7,13 @@
 class Player
 {
 public:
-	std::string name;
+	int name;
 	int health;
 	bool canPlaySpell, isDead;
-	Player(std::string n, int l);
-	Player();
-	~Player();
 
-	void CreatePlayer();
+	Player() {};
+	Player(int n, int l, unsigned int seed);
+	~Player();
 
 	void draw(int _nbCardToDraw);
 	void castSpell(int indexCard);
@@ -31,10 +30,10 @@ public:
 	void displayBoard();
 
 private:
-	Hand playerHand;
-	Deck playerDeck;
-	Board playerBoard;
-	Cemetery playerCemetery;
+	Hand* playerHand;
+	Deck* playerDeck;
+	Board* playerBoard;
+	Cemetery* playerCemetery;
 
 	int nbSpellMax, nbSpellPlayed;
 };

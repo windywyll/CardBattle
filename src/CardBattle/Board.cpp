@@ -6,36 +6,36 @@ using namespace std;
 Board::Board()
 {
 	maxCreatureOnBoard = 11;
-	cardList = vector<Card*>();
+	cardList = new vector<Card*>();
 }
 
 
 Board::~Board()
 {
-	while (cardList.size() != 0)
+	while (cardList->size() != 0)
 	{
-		Card* temp = *cardList.end();
-		cardList.pop_back();
+		Card* temp = cardList->back();
+		cardList->pop_back();
 		delete temp;
 	}
 }
 
 void Board::displayBoard()
 {
-	if (cardList.size() == 0)
+	if (cardList->size() == 0)
 	{
 		cout << "No creatures on board" << endl;
 		return;
 	}
 
-	for (int i = 0; i < cardList.size(); i++)
+	for (int i = 0; i < cardList->size(); i++)
 	{
 		cout << "Card " << i << " : " << endl;
 		cout << '/t';
 
-		cardList[i]->displayCard();
+		cardList->at(i)->displayCard();
 
-		if (cardList[i]->isTapped())
+		if (cardList->at(i)->isTapped())
 		{
 			cout << " - Can't Attack";
 		}
@@ -47,40 +47,40 @@ void Board::displayBoard()
 void Board::castCard(Card * _card)
 {
 	_card->tapCard();
-	cardList.push_back(_card);
+	cardList->push_back(_card);
 }
 
 Card * Board::creatureAttack(int indexCard)
 {
-	if (indexCard < 0 || indexCard > cardList.size())
+	if (indexCard < 0 || indexCard > cardList->size())
 	{
 		cout << "Card Invalid" << endl;
 		return nullptr;
 	}
 
-	if (cardList[indexCard]->isTapped())
+	if (cardList->at(indexCard)->isTapped())
 	{
 		cout << "Creature is exhausted" << endl;
 		return nullptr;
 	}
 
-	cardList[indexCard]->tapCard();
-	return cardList[indexCard];
+	cardList->at(indexCard)->tapCard();
+	return cardList->at(indexCard);
 }
 
 Card* Board::creatureDies(int indexCard)
 {
-	Card* toReturn = cardList[indexCard];
+	Card* toReturn = cardList->at(indexCard);
 
-	cardList.erase(cardList.begin() + indexCard);
+	cardList->erase(cardList->begin() + indexCard);
 
 	return toReturn;
 }
 
 void Board::untapBoard()
 {
-	for (int i = 0; i < cardList.size(); i++)
+	for (int i = 0; i < cardList->size(); i++)
 	{
-		cardList[i]->untapCard();
+		cardList->at(i)->untapCard();
 	}
 }

@@ -152,10 +152,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\CardBattle\Board.h" />
     <ClInclude Include="..\..\src\CardBattle\Card.h" />
+    <ClInclude Include="..\..\src\CardBattle\Cemetery.h" />
     <ClInclude Include="..\..\src\CardBattle\Deck.h" />
+    <ClInclude Include="..\..\src\CardBattle\GameManager.h" />
     <ClInclude Include="..\..\src\CardBattle\Hand.h" />
     <ClInclude Include="..\..\src\CardBattle\Player.h" />
-    <ClInclude Include="..\..\src\GameManager.h" />
     <ClInclude Include="..\..\src\Logger.h" />
     <ClInclude Include="..\..\src\Online\AuthenticationPlugin.h" />
     <ClInclude Include="..\..\src\Online\AuthenticationService.h" />
@@ -177,10 +178,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\CardBattle\Board.cpp" />
     <ClCompile Include="..\..\src\CardBattle\Card.cpp" />
+    <ClCompile Include="..\..\src\CardBattle\Cemetery.cpp" />
     <ClCompile Include="..\..\src\CardBattle\Deck.cpp" />
+    <ClCompile Include="..\..\src\CardBattle\GameManager.cpp" />
     <ClCompile Include="..\..\src\CardBattle\Hand.cpp" />
     <ClCompile Include="..\..\src\CardBattle\Player.cpp" />
-    <ClCompile Include="..\..\src\GameManager.cpp" />
     <ClCompile Include="..\..\src\Logger.cpp" />
     <ClCompile Include="..\..\src\Online\AuthenticationPlugin.cpp" />
     <ClCompile Include="..\..\src\Online\AuthenticationService.cpp" />

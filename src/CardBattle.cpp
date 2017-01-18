@@ -8,7 +8,8 @@
 #include "Online/TurnByTurnPlugin.h"
 #include "Online/GameSession.h"
 #include <time.h> 
-#include "GameManager.h"
+#include <vector>
+#include "CardBattle/GameManager.h"
 
 static std::string name;
 static unsigned int globalSeed;
@@ -17,12 +18,13 @@ enum class TransactionCommand : int
 {
 	Start,
 	Connect,
-	AddCard,
+	StartTurn,
 	AttackCard,
-	Pick,
+	PlayCard,
 	Wait,
 	EndTurn,
 	Disconnect,
+	Victory,
 };
 
 std::string strCmd(TransactionCommand com)
@@ -30,33 +32,40 @@ std::string strCmd(TransactionCommand com)
 	return std::to_string((int)com);
 }
 
-int ApplyTransaction(Stormancer::UpdateDto t, int& gameState, GameManager* manager)
+int ApplyTransaction(Stormancer::UpdateDto t, int& gameState, GameManager* gameManager)
 {
 	TransactionCommand command = (TransactionCommand)std::atoi(t.cmd.c_str());
 	if (t.cmd == "Start")command = TransactionCommand::Start;
-
+	std::cout << std::endl << "COMMAND: " << t.cmd << std::endl;
 	switch (command)
 	{
 	case TransactionCommand::Start:
-		manager->setSeed(globalSeed);
+		gameManager->CreateGame();
+		gameManager->setSeed(globalSeed);
 		std::cout << std::endl << "Starting with seed " << globalSeed << std::endl;
 		break;
-	case TransactionCommand::AddCard:
-		gameState += t.json_args()[L"value"].as_integer();
+	case TransactionCommand::StartTurn:
+		gameManager->startTurn();
 		break;
 	case TransactionCommand::AttackCard:
+		gameManager->playBattle(t.json_args()[L"atk"].as_integer(), t.json_args()[L"def"].as_integer());
 		break;
-	case TransactionCommand::Pick:
+	case TransactionCommand::PlayCard:
+		gameManager->playCard(t.json_args()[L"choice"].as_integer());
 		break;
 	case TransactionCommand::Wait:
 		break;
 	case TransactionCommand::EndTurn:
+		gameManager->endPhase();
 		break;
 	case TransactionCommand::Connect:
-		manager->AddPlayer(t.json_args()[L"pseudo"].as_integer());
+		gameManager->AddPlayer(t.json_args()[L"pseudo"].as_integer());
 		break;
 	case TransactionCommand::Disconnect:
 		
+		break;
+	case TransactionCommand::Victory:
+
 		break;
 	default:
 		break;
@@ -173,8 +182,6 @@ int main(int argc, char *argv[])
 	try
 	{
 		auto json = web::json::value();
-		json;
-		json[L"player"] = thePlayer;
 		json[L"pseudo"] = str_hash;
 		auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::Connect), json);
 		t.get();
@@ -189,22 +196,75 @@ int main(int argc, char *argv[])
 	int n;
 	while (running)
 	{
-		std::cout << "Enter To test Random" << std::endl;
-		std::cin >> n;
-		auto json = web::json::value();
-		json[L"value"] = n;
-	
+		gameManager->setupTurn(str_hash);
+
 		try
 		{
-			auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::AddCard), json);
+			web::json::value json;
+			auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::StartTurn), json);
 			t.get();
 		}
-		catch(std::exception& ex)
+		catch (std::exception& ex)
 		{
 			std::cout << ex.what();
 		}
+
+		do
+		{
+			web::json::value json;
+			gameManager->mainPhase();
+			json[L"choice"] = gameManager->choiceMP();
+
+			try
+			{
+				auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::PlayCard), json);
+				t.get();
+			}
+			catch (std::exception& ex)
+			{
+				std::cout << ex.what();
+			}
+		} while (gameManager->playingCard);
+		do
+		{
+			web::json::value json;
+			gameManager->battlePhase();
+			std::vector<int> result = gameManager->choiceBP();
+
+			json[L"atk"] = result[0];
+			json[L"def"] = result[1];
+
+			try
+			{
+				auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::AttackCard), json);
+				t.get();
+			}
+			catch (std::exception& ex)
+			{
+				std::cout << ex.what();
+			}
+		} while (gameManager->chooseToAttack);
+
+		try
+		{
+			web::json::value json;
+			auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::EndTurn), json);
+			t.get();
+		}
+		catch (std::exception& ex)
+		{
+			std::cout << ex.what();
+		}
+		
+		running = gameManager->endOfGame;
 	}
 
+	if(gameManager->winnerIsYou)
+		std::cout << "YOU WIN" << std::endl;
+	else
+		std::cout << "YOU LOSE" << std::endl;
+
+	system("Pause");
 	#pragma endregion
 
 	std::cout << "disconnecting...";

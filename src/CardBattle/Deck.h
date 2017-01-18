@@ -15,7 +15,7 @@ public:
 
 private:
 	int nbMaxCard, pointsToDistributeByCardMin, pointsToDistributeByCardMax;
-	std::vector<Card*> cardList;
+	std::vector<Card*>* cardList;
 
 	void fillDeck();
 	Card* createCard();

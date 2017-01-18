@@ -19,6 +19,6 @@ public:
 
 private:
 	int maxCreatureOnBoard;
-	std::vector<Card*> cardList;
+	std::vector<Card*>* cardList;
 };
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "Player.h"
+#include <vector>
 
 enum BattleOutcome
 {
@@ -13,27 +14,30 @@ class GameManager
 {
 public:
 	int currentSeed;
-	bool firstPlayerTurn, chooseToAttack, isYou;
+	bool firstPlayerTurn, playingCard, chooseToAttack, isYou, firstPlayerSet, endOfGame, winnerIsYou;
 	GameManager();
 	~GameManager();
 
-	void CreateGame(Player p1, Player p2);
+	void CreateGame();
 	void setSeed(unsigned int seed);
-	void turn();
-	
-	void startTurn(Player p);
-	void mainPhase(Player p, Player _enemy);
-	void choiceMP(Player p);
-	void battlePhase(Player p, Player _enemy);
-	void choiceBP(Player p, Player _enemy);
-	void endPhase(Player p);
+	void setupTurn(int id);
+	void AddPlayer(int id);
+
+	void startTurn();
+	void mainPhase();
+	int choiceMP();
+	void playCard(int indexCard);
+	void battlePhase();
+	std::vector<int> choiceBP();
+	void playBattle(int _atk, int _def);
+	void endPhase();
 
 	BattleOutcome Battle(Card* _atk, Card* _def);
 
 	void EndGame();
 
-private:
 	Player player1, player2;
+	Player playing, enemy;
 	int nbCardToDrawEachTurn;
 };
 

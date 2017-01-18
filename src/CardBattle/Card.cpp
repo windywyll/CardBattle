@@ -8,14 +8,12 @@ Card::Card()
 {
 	atk = 1;
 	def = 1;
-	summoningSickness = true;
 }
 
 Card::Card(int _atk, int _def)
 {
 	atk = _atk;
 	def = _def;
-	summoningSickness = true;
 }
 
 Card::~Card()
