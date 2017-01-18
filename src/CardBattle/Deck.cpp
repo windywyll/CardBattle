@@ -25,6 +25,9 @@ Deck::~Deck()
 
 Card* Deck::getTopCard()
 {
+	if (cardList.size() <= 0)
+		return;
+
 	Card* toReturn = *cardList.end();
 	cardList.pop_back();
 	return toReturn;

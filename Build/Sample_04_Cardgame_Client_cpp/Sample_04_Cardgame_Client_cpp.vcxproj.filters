@@ -150,7 +150,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\GameManager.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>CardBattle</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

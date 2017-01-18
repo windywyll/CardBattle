@@ -53,8 +53,10 @@ int ApplyTransaction(Stormancer::UpdateDto t, int& gameState, GameManager* manag
 	case TransactionCommand::EndTurn:
 		break;
 	case TransactionCommand::Connect:
+		manager->AddPlayer(t.json_args()[L"pseudo"].as_integer());
 		break;
 	case TransactionCommand::Disconnect:
+		
 		break;
 	default:
 		break;
@@ -73,6 +75,9 @@ int main(int argc, char *argv[])
 
 	std::hash<std::string> hash_fn;
 	size_t str_hash = hash_fn(login);
+
+	#pragma region Connect
+
 	if (argc >= 2)
 	{
 		login = std::string(argv[1]);
@@ -160,13 +165,17 @@ int main(int argc, char *argv[])
 	gameSession->ready();//Inform the server we are ready to play
 	gameSession->waitServerReady().get();
 	std::cout << "CONNECTED" << std::endl;
+#pragma endregion
 
+	#pragma region Game
+	
 	bool thePlayer = true;
 	try
 	{
 		auto json = web::json::value();
+		json;
 		json[L"player"] = thePlayer;
-		json[L"pseudo"] = std::atoi(name.c_str());
+		json[L"pseudo"] = str_hash;
 		auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::Connect), json);
 		t.get();
 
@@ -195,6 +204,8 @@ int main(int argc, char *argv[])
 			std::cout << ex.what();
 		}
 	}
+
+	#pragma endregion
 
 	std::cout << "disconnecting...";
 	client->disconnect().get();

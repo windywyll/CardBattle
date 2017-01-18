@@ -10,8 +10,6 @@ public:
 
 	int getAtk() const;
 	int getDef() const;
-	bool isSummoningSick() const;
-	void oneTurnOnBF();
 	bool isTapped() const;
 	void tapCard();
 	void untapCard();
@@ -20,6 +18,6 @@ public:
 
 private:
 	int atk, def;
-	bool summoningSickness, tapped;
+	bool tapped;
 };
 

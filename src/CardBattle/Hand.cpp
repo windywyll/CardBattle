@@ -45,6 +45,12 @@ void Hand::discardCard()
 
 Card* Hand::castCard(int _indexCard)
 {
+	if (_indexCard < 0 || _indexCard >= cardList.size())
+	{
+		cout << "Card Invalid" << endl;
+		return nullptr;
+	}
+
 	Card* toReturn = cardList[_indexCard];
 
 	cardList.erase(cardList.begin() + _indexCard);

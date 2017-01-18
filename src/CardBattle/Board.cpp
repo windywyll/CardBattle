@@ -32,11 +32,55 @@ void Board::displayBoard()
 	{
 		cout << "Card " << i << " : " << endl;
 		cout << '/t';
+
 		cardList[i]->displayCard();
+
+		if (cardList[i]->isTapped())
+		{
+			cout << " - Can't Attack";
+		}
+
 		cout << endl;
 	}
 }
 
 void Board::castCard(Card * _card)
 {
+	_card->tapCard();
+	cardList.push_back(_card);
+}
+
+Card * Board::creatureAttack(int indexCard)
+{
+	if (indexCard < 0 || indexCard > cardList.size())
+	{
+		cout << "Card Invalid" << endl;
+		return nullptr;
+	}
+
+	if (cardList[indexCard]->isTapped())
+	{
+		cout << "Creature is exhausted" << endl;
+		return nullptr;
+	}
+
+	cardList[indexCard]->tapCard();
+	return cardList[indexCard];
+}
+
+Card* Board::creatureDies(int indexCard)
+{
+	Card* toReturn = cardList[indexCard];
+
+	cardList.erase(cardList.begin() + indexCard);
+
+	return toReturn;
+}
+
+void Board::untapBoard()
+{
+	for (int i = 0; i < cardList.size(); i++)
+	{
+		cardList[i]->untapCard();
+	}
 }

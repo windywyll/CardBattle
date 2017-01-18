@@ -32,16 +32,6 @@ int Card::getDef() const
 	return def;
 }
 
-bool Card::isSummoningSick() const
-{
-	return summoningSickness;
-}
-
-void Card::oneTurnOnBF()
-{
-	summoningSickness = false;
-}
-
 bool Card::isTapped() const
 {
 	return tapped;
