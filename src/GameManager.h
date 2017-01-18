@@ -10,6 +10,6 @@ public:
 
 	void CreateGame(Player p1, Player p2);
 	void setSeed(unsigned int seed);
-	
+	void AddPlayer(size_t id);
 };
 

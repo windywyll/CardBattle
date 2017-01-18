@@ -21,4 +21,10 @@ void GameManager::setSeed(unsigned int seed)
 	currentSeed = seed;
 }
 
+void GameManager::AddPlayer(size_t id)
+{
+	std::cout << " AddPlayer: " << id << std::endl;
+}
+
+
 
