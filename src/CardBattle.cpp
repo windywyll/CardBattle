@@ -25,10 +25,13 @@ enum class TransactionCommand : int
 	Disconnect,
 };
 
+std::string strCmd(TransactionCommand com)
+{
+	return std::to_string((int)com);
+}
+
 int ApplyTransaction(Stormancer::UpdateDto t, int& gameState, GameManager* manager)
 {
-	
-
 	TransactionCommand command = (TransactionCommand)std::atoi(t.cmd.c_str());
 	if (t.cmd == "Start")command = TransactionCommand::Start;
 
@@ -67,6 +70,9 @@ int main(int argc, char *argv[])
 	std::cin >> name;
 	
 	std::string login = name;
+
+	std::hash<std::string> hash_fn;
+	size_t str_hash = hash_fn(login);
 	if (argc >= 2)
 	{
 		login = std::string(argv[1]);
@@ -117,9 +123,14 @@ int main(int argc, char *argv[])
 	});
 	transactionBroker->onUpdateGameCallback([&gameState, &gameManager](Stormancer::UpdateDto update)
 	{
+		//****
+		// Update game state (display life board hand etc...
+		//****
+
+
 		auto newHash = ApplyTransaction(update, gameState, gameManager);
 		//std::cout << "game state updated : " << gameState << std::endl;
-		std::cout << "Random Test: " << rand() % 100 << std::endl;
+		//std::cout << "Random Test: " << rand() % 100 << std::endl;
 		return newHash; //Returns the new hash to the server for validation
 	});
 	transactionBroker->onReplayTLog([&gameState,&running, &gameManager](std::vector<Stormancer::TransactionLogItem> transactions)
@@ -150,6 +161,22 @@ int main(int argc, char *argv[])
 	gameSession->waitServerReady().get();
 	std::cout << "CONNECTED" << std::endl;
 
+	bool thePlayer = true;
+	try
+	{
+		auto json = web::json::value();
+		json[L"player"] = thePlayer;
+		json[L"pseudo"] = std::atoi(name.c_str());
+		auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::Connect), json);
+		t.get();
+
+		//thePlayer = gameManager->GetCurrentPlayer(str_hash);
+	}
+	catch (std::exception& ex)
+	{
+		std::cout << ex.what();
+	}
+
 	int n;
 	while (running)
 	{
@@ -160,7 +187,7 @@ int main(int argc, char *argv[])
 	
 		try
 		{
-			auto t = transactionBroker->submitTransaction(auth->userId(), std::to_string((int)TransactionCommand::AddCard), json);
+			auto t = transactionBroker->submitTransaction(auth->userId(), strCmd(TransactionCommand::AddCard), json);
 			t.get();
 		}
 		catch(std::exception& ex)
