@@ -90,8 +90,8 @@
     <ClInclude Include="..\..\src\CardBattle\Player.h">
       <Filter>CardBattle</Filter>
     </ClInclude>
-    <ClInclude Include="GameManager.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\..\src\GameManager.h">
+      <Filter>CardBattle</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -149,7 +149,7 @@
     <ClCompile Include="..\..\src\CardBattle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GameManager.cpp">
+    <ClCompile Include="..\..\src\GameManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

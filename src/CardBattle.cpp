@@ -16,17 +16,18 @@ static unsigned int globalSeed;
 enum class TransactionCommand : int
 {
 	Start,
+	Connect,
 	AddCard,
 	AttackCard,
 	Pick,
 	Wait,
 	EndTurn,
-	EndGame,
+	Disconnect,
 };
 
-int ApplyTransaction(Stormancer::UpdateDto t, int& gameState)
+int ApplyTransaction(Stormancer::UpdateDto t, int& gameState, GameManager* manager)
 {
-	GameManager* gameManager = new GameManager();
+	
 
 	TransactionCommand command = (TransactionCommand)std::atoi(t.cmd.c_str());
 	if (t.cmd == "Start")command = TransactionCommand::Start;
@@ -34,8 +35,7 @@ int ApplyTransaction(Stormancer::UpdateDto t, int& gameState)
 	switch (command)
 	{
 	case TransactionCommand::Start:
-		
-		GameManager::seed = 999;
+		manager->setSeed(globalSeed);
 		std::cout << std::endl << "Starting with seed " << globalSeed << std::endl;
 		break;
 	case TransactionCommand::AddCard:
@@ -49,7 +49,9 @@ int ApplyTransaction(Stormancer::UpdateDto t, int& gameState)
 		break;
 	case TransactionCommand::EndTurn:
 		break;
-	case TransactionCommand::EndGame:
+	case TransactionCommand::Connect:
+		break;
+	case TransactionCommand::Disconnect:
 		break;
 	default:
 		break;
@@ -60,6 +62,7 @@ int ApplyTransaction(Stormancer::UpdateDto t, int& gameState)
 
 int main(int argc, char *argv[])
 {
+	GameManager* gameManager = new GameManager();
 	std::cout << "Enter your name :" << std::endl;
 	std::cin >> name;
 	
@@ -112,19 +115,19 @@ int main(int argc, char *argv[])
 		std::cout << "A desynchronization error occured. Details : " << error << std::endl;
 		running = false;
 	});
-	transactionBroker->onUpdateGameCallback([&gameState](Stormancer::UpdateDto update)
+	transactionBroker->onUpdateGameCallback([&gameState, &gameManager](Stormancer::UpdateDto update)
 	{
-		auto newHash = ApplyTransaction(update, gameState);
+		auto newHash = ApplyTransaction(update, gameState, gameManager);
 		//std::cout << "game state updated : " << gameState << std::endl;
 		std::cout << "Random Test: " << rand() % 100 << std::endl;
 		return newHash; //Returns the new hash to the server for validation
 	});
-	transactionBroker->onReplayTLog([&gameState,&running](std::vector<Stormancer::TransactionLogItem> transactions)
+	transactionBroker->onReplayTLog([&gameState,&running, &gameManager](std::vector<Stormancer::TransactionLogItem> transactions)
 	{
 		std::cout << "Replay existing transaction log...";
 		for (auto t : transactions)
 		{
-			auto newHash = ApplyTransaction(t.transactionCommand, gameState);
+			auto newHash = ApplyTransaction(t.transactionCommand, gameState, gameManager);
 			if (t.hashAvailable && t.resultHash != newHash)
 			{
 				std::cout << "Desynchronization while playing Transaction log. Expected "<<t.resultHash << " obtained "<< newHash << std::endl;

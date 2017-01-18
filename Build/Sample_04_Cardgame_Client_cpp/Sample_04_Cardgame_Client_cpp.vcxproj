@@ -155,6 +155,7 @@
     <ClInclude Include="..\..\src\CardBattle\Deck.h" />
     <ClInclude Include="..\..\src\CardBattle\Hand.h" />
     <ClInclude Include="..\..\src\CardBattle\Player.h" />
+    <ClInclude Include="..\..\src\GameManager.h" />
     <ClInclude Include="..\..\src\Logger.h" />
     <ClInclude Include="..\..\src\Online\AuthenticationPlugin.h" />
     <ClInclude Include="..\..\src\Online\AuthenticationService.h" />
@@ -172,7 +173,6 @@
     <ClInclude Include="..\..\src\Online\TurnByTurnPlugin.h" />
     <ClInclude Include="..\..\src\stdafx.h" />
     <ClInclude Include="..\..\src\targetver.h" />
-    <ClInclude Include="GameManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\CardBattle\Board.cpp" />
@@ -180,6 +180,7 @@
     <ClCompile Include="..\..\src\CardBattle\Deck.cpp" />
     <ClCompile Include="..\..\src\CardBattle\Hand.cpp" />
     <ClCompile Include="..\..\src\CardBattle\Player.cpp" />
+    <ClCompile Include="..\..\src\GameManager.cpp" />
     <ClCompile Include="..\..\src\Logger.cpp" />
     <ClCompile Include="..\..\src\Online\AuthenticationPlugin.cpp" />
     <ClCompile Include="..\..\src\Online\AuthenticationService.cpp" />
@@ -198,7 +199,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="GameManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
