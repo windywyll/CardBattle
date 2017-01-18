@@ -19,3 +19,24 @@ Board::~Board()
 		delete temp;
 	}
 }
+
+void Board::displayBoard()
+{
+	if (cardList.size() == 0)
+	{
+		cout << "No creatures on board" << endl;
+		return;
+	}
+
+	for (int i = 0; i < cardList.size(); i++)
+	{
+		cout << "Card " << i << " : " << endl;
+		cout << '/t';
+		cardList[i]->displayCard();
+		cout << endl;
+	}
+}
+
+void Board::castCard(Card * _card)
+{
+}

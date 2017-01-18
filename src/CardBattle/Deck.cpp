@@ -30,6 +30,11 @@ Card* Deck::getTopCard()
 	return toReturn;
 }
 
+void Deck::displayHand()
+{
+	
+}
+
 void Deck::fillDeck()
 {
 	for (int i = 0; i < nbMaxCard; i++)

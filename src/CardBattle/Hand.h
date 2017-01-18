@@ -9,8 +9,14 @@ public:
 	Hand(Card* _hand, int _sizeInitial);
 	~Hand();
 
+	bool isFull;
+
 	void drawCard(Card* _newCard);
 	void discardCard();
+
+	Card* castCard(int _indexCard);
+
+	void displayHand();
 
 private:
 	std::vector<Card*> cardList;

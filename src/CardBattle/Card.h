@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>
+
 class Card
 {
 public:
@@ -13,6 +15,8 @@ public:
 	bool isTapped() const;
 	void tapCard();
 	void untapCard();
+
+	void displayCard();
 
 private:
 	int atk, def;

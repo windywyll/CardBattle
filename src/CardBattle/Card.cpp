@@ -2,6 +2,8 @@
 #include "Card.h"
 
 
+using namespace std;
+
 Card::Card()
 {
 	atk = 1;
@@ -53,4 +55,9 @@ void Card::tapCard()
 void Card::untapCard()
 {
 	tapped = false;
+}
+
+void Card::displayCard()
+{
+	cout << "Creature ATK : " << atk << " - DEF : " << def;
 }

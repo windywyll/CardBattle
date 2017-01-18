@@ -9,6 +9,9 @@ public:
 	Board();
 	~Board();
 
+	void displayBoard();
+	void castCard(Card* _card);
+
 private:
 	int maxCreatureOnBoard;
 	std::vector<Card*> cardList;

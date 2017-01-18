@@ -11,6 +11,7 @@ public:
 	~Deck();
 
 	Card* getTopCard();
+	void displayHand();
 
 private:
 	int nbMaxCard, pointsToDistributeByCardMin, pointsToDistributeByCardMax;
